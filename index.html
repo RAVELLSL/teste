@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f0f2f5">
+  <title>Apresentação de Slides Otimizada e Interativa</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Reset Global e Box-Sizing */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --font-primary: 'Montserrat', sans-serif;
+      --font-secondary: 'Lato', sans-serif;
+      --color-text-primary: #212529;
+      --color-text-secondary: #495057;
+      --color-text-light: #6c757d;
+      --bg-body: #f0f2f5;
+      --bg-slide: #ffffff;
+      --color-accent: #007bff;
+      --placeholder-border: #ced4da;
+      --placeholder-bg: rgba(0,0,0,0.02);
+      --modal-overlay-bg: rgba(0, 0, 0, 0.8);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: var(--font-secondary);
+      background: var(--bg-body);
+      color: var(--color-text-primary);
+      overflow: hidden;
+    }
+
+    .presentation-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      outline: none; /* Para remover a borda de foco padrão se tabindex for usado */
+    }
+
+    .slide-counter {
+      position: absolute;
+      bottom: 1.5rem;
+      right: 2rem;
+      font-family: var(--font-secondary);
+      font-size: 0.85em;
+      background: rgba(0,0,0,0.4);
+      color: #fff;
+      padding: 0.5em 1em;
+      border-radius: 20px;
+      z-index: 10;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      padding: 5vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: var(--bg-slide);
+      opacity: 0;
+      transform: translateX(100%);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      z-index: 2;
+    }
+    .slide.exit-left {
+      opacity: 0;
+      transform: translateX(-100%);
+      z-index: 1;
+    }
+    .slide.exit-right {
+      opacity: 0;
+      transform: translateX(100%);
+      z-index: 1;
+    }
+    .slide.prepare-next { opacity: 0; transform: translateX(100%); }
+    .slide.prepare-prev { opacity: 0; transform: translateX(-100%); }
+
+    .slide h1 {
+      font-family: var(--font-primary);
+      font-weight: 700;
+      font-size: clamp(2em, 5vw, 3.5em);
+      color: var(--color-text-primary);
+      margin-bottom: 0.5em;
+      padding-bottom: 0.3em;
+      border-bottom: 3px solid var(--color-accent);
+      display: inline-block;
+    }
+    .slide h2 {
+      font-family: var(--font-primary);
+      font-weight: 500;
+      font-size: clamp(1.5em, 4vw, 2.2em);
+      color: var(--color-text-secondary);
+      margin-bottom: 1em;
+    }
+    .slide p {
+      font-size: clamp(1em, 2.5vw, 1.2em);
+      color: var(--color-text-light);
+      line-height: 1.7;
+      max-width: 70ch;
+      margin-bottom: 1em;
+    }
+    .slide p.lead {
+      font-size: clamp(1.1em, 3vw, 1.4em);
+      color: var(--color-text-secondary);
+      font-weight: 400;
+    }
+
+    .placeholder-text { color: var(--color-text-light); font-style: italic; font-size: 0.9em; }
+    .navigation-hint { margin-top: 3rem; font-size: 0.9em; color: var(--color-accent); }
+    .mt-2 { margin-top: 2rem !important; }
+    .mt-3 { margin-top: 3rem !important; }
+    .font-small { font-size: 0.9em; }
+    .text-accent { color: var(--color-accent); }
+
+    .content-area {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      align-items: flex-start;
+      width: 100%;
+      gap: 30px;
+      margin-top: 2rem;
+    }
+    .content-area.centered-items { align-items: center; }
+    .text-content { flex: 2; text-align: left; }
+    .text-content p { max-width: none; }
+
+    .placeholder-content {
+      flex: 1;
+      background: var(--placeholder-bg);
+      border: 2px dashed var(--placeholder-border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.03);
+      text-align: center;
+      color: var(--color-text-light);
+    }
+    .placeholder-content strong {
+      font-family: var(--font-primary);
+      font-size: 1.1em;
+      color: var(--color-text-secondary);
+      margin-bottom: 0.5em;
+    }
+    .placeholder-content p.small-info {
+      font-size: 0.8em;
+      line-height: 1.4;
+    }
+
+    .placeholder-image-vertical { max-width: 300px; min-height: 350px; }
+    .placeholder-image-horizontal { max-width: 600px; min-height: 250px; }
+
+    .video-container-placeholder {
+      width: clamp(300px, 70%, 800px);
+      height: clamp(200px, 50vh, 450px);
+      background: #111;
+      color: #fff;
+      margin: 2rem auto;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .video-container-placeholder p { color: #eee; }
+    .video-container-placeholder code {
+      background: #333;
+      color: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      word-break: break-all;
+    }
+
+    .smart-gallery {
+      display: grid;
+      /* Ajustado para 5 colunas em telas maiores, mas responsivo */
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 15px;
+      width: 100%;
+      max-width: 800px; /* Ajustado para acomodar melhor 5 itens com espaçamento */
+      padding: 1rem;
+      margin-top: 1.5rem;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.01);
+    }
+    .gallery-item {
+      background: #e9ecef;
+      aspect-ratio: 1 / 1; /* Para miniaturas quadradas */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      overflow: hidden; /* Para a imagem não vazar do aspect-ratio */
+    }
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Garante que a imagem cubra o item */
+        transition: transform 0.3s ease;
+    }
+    .gallery-item:hover img {
+      transform: scale(1.1);
+    }
+     .gallery-item:hover {
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+     }
+    .gallery-item:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+
+
+    .chart-placeholder-content,
+    .table-placeholder-content {
+      padding: 25px;
+      min-height: 320px;
+    }
+    .chart-placeholder-content { flex: 1.5; }
+    .table-placeholder-content { flex: 1; }
+    .table-placeholder-content table {
+      width: 100%;
+      margin-top: 1rem;
+      border-collapse: collapse;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .table-placeholder-content th,
+    .table-placeholder-content td {
+      border: 1px solid #dee2e6;
+      padding: 12px 15px;
+      font-size: 0.9em;
+      color: var(--color-text-secondary);
+      text-align: left;
+    }
+    .table-placeholder-content th {
+      background: #f8f9fa;
+      color: var(--color-text-primary);
+      font-family: var(--font-primary);
+      font-weight: 600;
+    }
+    .table-placeholder-content tbody tr:nth-child(even) { background: #fcfdff; }
+    .table-placeholder-content tbody tr:hover { background: #e9ecef; }
+
+    /* Estilos para o Slide FAQ Interativo */
+    .faq-container {
+      width: 100%;
+      max-width: 700px;
+      margin-top: 1.5rem;
+      text-align: left;
+    }
+    .faq-item {
+      border-bottom: 1px solid var(--placeholder-border);
+    }
+    .faq-item:last-child {
+      border-bottom: none;
+    }
+    .faq-question {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 1rem 0.5rem;
+      font-family: var(--font-primary);
+      font-size: clamp(1em, 2.5vw, 1.2em);
+      font-weight: 500;
+      color: var(--color-text-primary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+    }
+    .faq-question:hover,
+    .faq-question:focus {
+      color: var(--color-accent);
+      outline: none;
+    }
+     .faq-question:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+    .faq-icon {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      margin-left: 0.5em;
+      transition: transform 0.3s ease;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .faq-icon::before,
+    .faq-icon::after {
+      content: '';
+      position: absolute;
+      background-color: currentColor;
+      transition: transform 0.3s ease;
+    }
+    .faq-icon::before {
+      top: 10%; bottom: 10%;
+      left: calc(50% - 1px);
+      width: 2px;
+    }
+    .faq-icon::after {
+      left: 10%; right: 10%;
+      top: calc(50% - 1px);
+      height: 2px;
+    }
+    .faq-question[aria-expanded="true"] .faq-icon::before {
+      transform: rotate(90deg);
+    }
+    .faq-question[aria-expanded="true"] .faq-icon::after {
+      transform: rotate(180deg);
+    }
+    .faq-answer {
+      padding: 0 0.5rem;
+      font-size: clamp(0.9em, 2vw, 1.1em);
+      line-height: 1.6;
+      color: var(--color-text-secondary);
+      overflow: hidden; 
+      max-height: 0; 
+      opacity: 0; 
+      transition: max-height 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+                  opacity 0.3s ease-out,
+                  padding-top 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+                  padding-bottom 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .faq-question[aria-expanded="true"] + .faq-answer {
+      max-height: 500px;
+      opacity: 1;
+      padding-top: 0.5rem;
+      padding-bottom: 1rem;
+    }
+
+    /* Estilos para o Modal da Galeria */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--modal-overlay-bg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0s linear 0.3s; /* Atraso na remoção da visibilidade */
+        z-index: 1000; /* Acima de tudo */
+    }
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.3s ease;
+    }
+    .modal-content {
+        position: relative;
+        background-color: var(--bg-slide); /* Pode ser transparente ou uma cor de fundo */
+        padding: 15px;
+        border-radius: 8px;
+        max-width: 90vw;  /* Máximo de 90% da largura da viewport */
+        max-height: 90vh; /* Máximo de 90% da altura da viewport */
+        display: flex; /* Para centralizar a imagem se ela for menor que max-width/height */
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+    }
+    .modal-image {
+        display: block; /* Remove espaço extra abaixo da imagem */
+        max-width: 100%;
+        max-height: 100%;
+        width: auto; /* Mantém proporção */
+        height: auto; /* Mantém proporção */
+        object-fit: contain; /* Garante que toda a imagem seja visível */
+    }
+    .close-modal-button {
+        position: absolute;
+        top: -15px; /* Posição ajustável */
+        right: -15px; /* Posição ajustável */
+        background-color: #fff;
+        color: var(--color-text-primary);
+        border: none;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        font-size: 1.5em;
+        line-height: 35px; /* Centraliza o 'X' */
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 1001;
+    }
+    .close-modal-button:hover {
+        background-color: #f0f0f0;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="presentation-container"
+       role="region"
+       aria-label="Apresentação de Slides"
+       tabindex="0">
+
+    <div class="slide-counter" id="slideCounter" aria-live="polite">
+      </div>
+
+    <section class="slide" id="slide1" role="group" aria-label="Slide 1: Título" aria-hidden="false">
+      <h1>[Título Principal da Apresentação]</h1>
+      <h2>[Subtítulo ou Tema Central]</h2>
+      <p class="lead placeholder-text">
+        Este é um texto introdutório genérico. Substitua este conteúdo pela sua introdução, agradecimentos ou qualquer informação inicial relevante.
+      </p>
+      <p class="navigation-hint">
+        Use as setas do teclado (← →) para navegar.
+      </p>
+    </section>
+
+    <section class="slide" id="slide2" role="group" aria-label="Slide 2: Imagem Horizontal" aria-hidden="true">
+      <h1>[Título do Slide 2]</h1>
+      <p>[Texto explicativo sobre o tópico. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.]</p>
+      <div class="content-area">
+        <div class="placeholder-content placeholder-image-horizontal">
+          <strong>Espaço para Imagem Horizontal</strong>
+          <p class="small-info">(ex: 1200x675px)</p>
+          <p class="placeholder-text">Insira sua imagem aqui.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide3" role="group" aria-label="Slide 3: Imagem Vertical" aria-hidden="true">
+      <h1>[Título do Slide 3]</h1>
+      <div class="content-area centered-items">
+        <div class="text-content">
+          <p>[Detalhes sobre o conteúdo. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.]</p>
+          <p class="placeholder-text">
+            Este bloco de texto pode ser expandido conforme necessário.
+          </p>
+        </div>
+        <div class="placeholder-content placeholder-image-vertical">
+          <strong>Imagem Vertical</strong>
+          <p class="small-info">(ex: 400x600px)</p>
+          <p class="placeholder-text">Adicione uma imagem relevante.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide4" role="group" aria-label="Slide 4: Composição Visual" aria-hidden="true">
+      <h1>[Composição Visual]</h1>
+      <h2>[Destaque com Múltiplas Imagens]</h2>
+      <div class="content-area centered-items">
+        <div class="placeholder-content placeholder-image-vertical mt-2" style="max-width:250px;min-height:280px;">
+          <strong>Imagem Vertical A</strong>
+          <p class="placeholder-text">Menor, para detalhes.</p>
+        </div>
+        <div class="placeholder-content placeholder-image-horizontal mt-2" style="max-width:450px;min-height:280px;">
+          <strong>Imagem Horizontal B</strong>
+          <p class="placeholder-text">Maior, para impacto.</p>
+        </div>
+      </div>
+      <p class="placeholder-text mt-3">
+        Utilize este layout para exibir diferentes mídias lado a lado.
+      </p>
+    </section>
+
+    <section class="slide" id="slide5" role="group" aria-label="Slide 5: Vídeo" aria-hidden="true">
+      <h1>[Incorporação de Vídeo]</h1>
+      <h2>[Conteúdo Multimídia]</h2>
+      <div class="video-container-placeholder">
+        <strong>Espaço para Vídeo</strong>
+        <p class="small-info mt-2">
+          Para incorporar: abra o vídeo no Drive &gt; Mais ações (⋮) &gt; Abrir em nova janela &gt; Mais ações (⋮) &gt; Incorporar item... Copie o código <code>&lt;iframe&gt;</code>.
+        </p>
+        <p class="placeholder-text mt-2">O vídeo ocupará esta área.</p>
+      </div>
+      <p class="placeholder-text mt-3">
+        Este slide exibe conteúdo via <code>&lt;iframe&gt;</code>.
+      </p>
+    </section>
+
+    <section class="slide" id="slide6" role="group" aria-label="Slide 6: Galeria de Fotos" aria-hidden="true">
+      <h1>[Galeria de Fotos com Modal]</h1>
+      <h2>[Clique para ampliar]</h2>
+      <div class="smart-gallery">
+        <div class="gallery-item" role="button" tabindex="0" data-full-image-src="https://picsum.photos/id/1015/1200/800" aria-label="Ampliar Imagem 1: Lago com montanhas">
+            <img src="https://picsum.photos/id/1015/200/200" alt="Miniatura Lago com montanhas">
+        </div>
+        <div class="gallery-item" role="button" tabindex="0" data-full-image-src="https://picsum.photos/id/1016/1200/900" aria-label="Ampliar Imagem 2: Veículo antigo">
+            <img src="https://picsum.photos/id/1016/200/200" alt="Miniatura Veículo antigo">
+        </div>
+        <div class="gallery-item" role="button" tabindex="0" data-full-image-src="https://picsum.photos/id/1018/1000/1200" aria-label="Ampliar Imagem 3: Menina na praia (vertical)">
+            <img src="https://picsum.photos/id/1018/200/200" alt="Miniatura Menina na praia">
+        </div>
+        <div class="gallery-item" role="button" tabindex="0" data-full-image-src="https://picsum.photos/id/1025/1600/1000" aria-label="Ampliar Imagem 4: Cão Pug">
+            <img src="https://picsum.photos/id/1025/200/200" alt="Miniatura Cão Pug">
+        </div>
+        <div class="gallery-item" role="button" tabindex="0" data-full-image-src="https://picsum.photos/id/10/1200/800" aria-label="Ampliar Imagem 5: Névoa na floresta">
+            <img src="https://picsum.photos/id/10/200/200" alt="Miniatura Névoa na floresta">
+        </div>
+      </div>
+      <p class="placeholder-text mt-3">
+        Clique em uma miniatura para ver a imagem ampliada.
+      </p>
+    </section>
+
+    <section class="slide" id="slide7" role="group" aria-label="Slide 7: Dados e Análises" aria-hidden="true">
+      <h1>[Análise de Dados]</h1>
+      <h2>[Métricas e Comparações]</h2>
+      <div class="content-area">
+        <div class="placeholder-content chart-placeholder-content">
+          <strong>Espaço para Gráfico</strong>
+          <p class="small-info">Use biblioteca JS ou imagem.</p>
+          <p class="placeholder-text mt-2">Visualizações facilitam insights.</p>
+        </div>
+        <div class="placeholder-content table-placeholder-content">
+          <strong>Espaço para Tabela</strong>
+          <table>
+            <thead>
+              <tr>
+                <th>Indicador</th>
+                <th>Valor</th>
+                <th>Tendência</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Métrica X</td><td>1,234</td><td>Positiva</td></tr>
+              <tr><td>Métrica Y</td><td>56.7%</td><td>Estável</td></tr>
+              <tr><td>Métrica Z</td><td>890</td><td>Negativa</td></tr>
+            </tbody>
+          </table>
+          <p class="placeholder-text mt-2">Tabelas trazem clareza a dados complexos.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide8" role="group" aria-label="Slide 8: Conclusão" aria-hidden="true">
+      <h1>[Conclusão e Próximos Passos]</h1>
+      <h2>[Resumo e CTA]</h2>
+      <p class="lead placeholder-text">
+        Recapitule os pontos-chave e direcione para a ação.
+      </p>
+      <div class="mt-3" style="font-size:1.1em;">
+        <p><strong>Contato:</strong> seuemail@exemplo.com.br</p>
+        <p><strong>Website:</strong> www.seusiteincrivel.com</p>
+      </div>
+      <p class="text-accent mt-3">Obrigado pela atenção!</p>
+    </section>
+
+    <section class="slide" id="slide9" role="group" aria-label="Slide 9: Perguntas Frequentes" aria-hidden="true">
+      <h1>Perguntas Frequentes</h1>
+      <div class="faq-container">
+        <div class="faq-item">
+          <button class="faq-question" aria-expanded="false">
+            Como funciona a navegação entre os slides?
+            <span class="faq-icon" aria-hidden="true"></span>
+          </button>
+          <div class="faq-answer" id="faq-answer-1" role="region">
+            <p>
+              Você pode navegar utilizando as teclas de seta Esquerda (←) e Direita (→) do seu teclado.
+            </p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" aria-expanded="false">
+            Posso adicionar vídeos de outras plataformas além do Google Drive?
+            <span class="faq-icon" aria-hidden="true"></span>
+          </button>
+          <div class="faq-answer" id="faq-answer-2" role="region">
+            <p>
+              Sim! O placeholder de vídeo é para um <code>&lt;iframe&gt;</code>. Você pode incorporar vídeos do YouTube, Vimeo, ou qualquer serviço que forneça um código de incorporação iframe.
+            </p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" aria-expanded="false">
+            Como a galeria inteligente de fotos se ajusta?
+            <span class="faq-icon" aria-hidden="true"></span>
+          </button>
+          <div class="faq-answer" id="faq-answer-3" role="region">
+            <p>
+              A galeria utiliza CSS Grid com <code>repeat(auto-fill, minmax(130px, 1fr))</code>, o que significa que ela tentará preencher o espaço com o máximo de colunas de pelo menos 130px de largura, ajustando-se automaticamente ao tamanho da tela e ao número de itens.
+            </p>
+          </div>
+        </div>
+      </div>
+      <p class="placeholder-text mt-3">Clique nas perguntas para ver as respostas.</p>
+    </section>
+  </div>
+
+  <div id="imageModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content" role="document">
+      <h2 id="modalTitle" class="visually-hidden">Imagem Ampliada</h2> <button class="close-modal-button" aria-label="Fechar modal">&times;</button>
+      <img src="" alt="Imagem ampliada da galeria" class="modal-image" id="modalImageContent">
+    </div>
+  </div>
+  <style>.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }</style>
+
+
+  <script>
+    (function(){
+      const presentationContainer = document.querySelector('.presentation-container');
+      const slides = document.querySelectorAll('.slide');
+      const counter = document.getElementById('slideCounter');
+      let current = 0;
+      let total = slides.length;
+
+      // Elementos do Modal da Galeria
+      const imageModal = document.getElementById('imageModal');
+      const modalImageContent = document.getElementById('modalImageContent');
+      const closeModalButton = imageModal.querySelector('.close-modal-button');
+
+
+      const init = () => {
+        slides.forEach((s,i) => {
+          s.classList.remove('active','exit-left','exit-right','prepare-next','prepare-prev');
+          s.setAttribute('aria-hidden', String(i !== 0));
+          if (i === 0) {
+            s.classList.add('active');
+          } else {
+            s.classList.add('prepare-next');
+          }
+        });
+        updateCounter();
+        setupFaq();
+        setupGalleryModal(); // Nova função para configurar a galeria com modal
+        if(presentationContainer) presentationContainer.focus();
+      };
+
+      const updateCounter = () => {
+        if (counter) {
+            counter.textContent = `Slide ${current + 1} / ${total}`;
+        }
+      };
+
+      const goTo = index => {
+        if (index < 0 || index >= total || index === current) {
+            if (index === current && presentationContainer) presentationContainer.focus();
+            return;
+        }
+
+        const oldSlide = slides[current];
+        const newSlide = slides[index];
+
+        oldSlide.classList.remove('active');
+        oldSlide.classList.add(index > current ? 'exit-left' : 'exit-right');
+        oldSlide.setAttribute('aria-hidden', 'true');
+
+        newSlide.classList.remove('exit-left','exit-right','prepare-next','prepare-prev');
+        newSlide.classList.add(index > current ? 'prepare-next' : 'prepare-prev');
+        
+        void newSlide.offsetWidth; 
+
+        newSlide.classList.add('active');
+        newSlide.classList.remove('prepare-next','prepare-prev');
+        newSlide.setAttribute('aria-hidden', 'false');
+
+        current = index;
+        updateCounter();
+        if(presentationContainer) presentationContainer.focus();
+      };
+
+      const setupFaq = () => {
+        const faqItems = document.querySelectorAll('.faq-item');
+        faqItems.forEach(item => {
+          const questionButton = item.querySelector('.faq-question');
+          const answerPanel = item.querySelector('.faq-answer');
+          
+          if (questionButton && answerPanel) {
+            const answerPanelId = answerPanel.getAttribute('id');
+            if (answerPanelId) {
+                 questionButton.setAttribute('aria-controls', answerPanelId);
+            } else {
+                const uniqueId = 'faq-answer-' + Math.random().toString(36).substr(2, 9);
+                answerPanel.setAttribute('id', uniqueId);
+                questionButton.setAttribute('aria-controls', uniqueId);
+            }
+            if(questionButton.getAttribute('aria-expanded') !== 'true'){
+                 questionButton.setAttribute('aria-expanded', 'false');
+            }
+
+            questionButton.addEventListener('click', () => {
+              const isExpanded = questionButton.getAttribute('aria-expanded') === 'true';
+              questionButton.setAttribute('aria-expanded', String(!isExpanded));
+            });
+          }
+        });
+      };
+
+      const setupGalleryModal = () => {
+        const galleryItems = document.querySelectorAll('#slide6 .gallery-item');
+        let previouslyFocusedElement = null; // Para restaurar o foco
+
+        const openModal = (imageSrc, altText) => {
+            if (!imageModal || !modalImageContent) return;
+            previouslyFocusedElement = document.activeElement; // Salva o foco atual
+            modalImageContent.src = imageSrc;
+            modalImageContent.alt = altText || "Imagem ampliada da galeria";
+            imageModal.classList.add('active');
+            imageModal.setAttribute('aria-hidden', 'false');
+            if(closeModalButton) closeModalButton.focus(); // Foca no botão de fechar
+        };
+
+        const closeModal = () => {
+            if (!imageModal) return;
+            imageModal.classList.remove('active');
+            imageModal.setAttribute('aria-hidden', 'true');
+            if (previouslyFocusedElement) {
+                previouslyFocusedElement.focus(); // Restaura o foco
+            }
+        };
+
+        galleryItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const fullImageSrc = item.dataset.fullImageSrc;
+                const altText = item.querySelector('img')?.alt || "Imagem da galeria";
+                if (fullImageSrc) {
+                    openModal(fullImageSrc, altText);
+                }
+            });
+            // Permitir abrir com Enter/Espaço para acessibilidade
+            item.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const fullImageSrc = item.dataset.fullImageSrc;
+                    const altText = item.querySelector('img')?.alt || "Imagem da galeria";
+                     if (fullImageSrc) {
+                        openModal(fullImageSrc, altText);
+                    }
+                }
+            });
+        });
+
+        if(closeModalButton) {
+            closeModalButton.addEventListener('click', closeModal);
+        }
+
+        if(imageModal) {
+            // Fechar ao clicar no overlay (fora do conteúdo do modal)
+            imageModal.addEventListener('click', (event) => {
+                if (event.target === imageModal) { // Se o clique foi diretamente no overlay
+                    closeModal();
+                }
+            });
+        }
+        
+        // Fechar com a tecla Escape
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && imageModal && imageModal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+      };
+
+
+      document.addEventListener('keydown', e => {
+        if (imageModal && imageModal.classList.contains('active')) {
+            // Não interfere com a navegação dos slides se o modal estiver ativo,
+            // exceto pela tecla Escape que já é tratada.
+            return;
+        }
+
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            const activeElement = document.activeElement;
+            const isFocusInInput = activeElement && (activeElement.tagName === 'INPUT' || 
+                                   activeElement.tagName === 'TEXTAREA' || 
+                                   activeElement.isContentEditable);
+            
+            if (isFocusInInput) {
+                return; 
+            }
+            if(presentationContainer && document.activeElement !== presentationContainer && !presentationContainer.contains(document.activeElement) && !['BUTTON', 'A'].includes(activeElement.tagName) && activeElement.closest && !activeElement.closest('.faq-question') && !activeElement.closest('.gallery-item')) {
+                // Se o foco não estiver em algo interativo, previne o scroll
+                 e.preventDefault();
+            } else if (!isFocusInInput && !activeElement.closest('.faq-container') && !activeElement.closest('.smart-gallery')) {
+                 // Previne scroll se o foco não estiver no FAQ ou galeria (que podem ter sua própria navegação interna)
+                 e.preventDefault();
+            }
+        }
+
+        if (e.key === 'ArrowRight') goTo(current + 1);
+        if (e.key === 'ArrowLeft')  goTo(current - 1);
+      });
+
+      window.addEventListener('load', init);
+    })();
+  </script>
+</body>
+</html>

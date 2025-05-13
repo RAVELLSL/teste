@@ -13,7 +13,6 @@
       margin: 0;
       padding: 0;
     }
-
     :root {
       --font-primary: 'Montserrat', sans-serif;
       --font-secondary: 'Lato', sans-serif;
@@ -26,8 +25,9 @@
       --placeholder-border: #ced4da;
       --placeholder-bg: rgba(0,0,0,0.02);
       --modal-overlay-bg: rgba(0, 0, 0, 0.8);
+      --code-bg: #2d2d2d;
+      --code-text: #f0f0f0;
     }
-
     html, body {
       width: 100%;
       height: 100%;
@@ -36,7 +36,6 @@
       color: var(--color-text-primary);
       overflow: hidden;
     }
-
     .presentation-container {
       position: relative;
       width: 100%;
@@ -44,7 +43,6 @@
       overflow: hidden;
       outline: none; /* Para remover a borda de foco padrão se tabindex for usado */
     }
-
     .slide-counter {
       position: absolute;
       bottom: 1.5rem;
@@ -57,7 +55,6 @@
       border-radius: 20px;
       z-index: 10;
     }
-
     .slide {
       position: absolute;
       top: 0; left: 0;
@@ -72,6 +69,7 @@
       opacity: 0;
       transform: translateX(100%);
       transition: opacity 0.6s ease, transform 0.6s ease;
+      overflow-y: auto; /* Permitir rolagem em slides com muito conteúdo */
     }
     .slide.active {
       opacity: 1;
@@ -120,13 +118,34 @@
       color: var(--color-text-secondary);
       font-weight: 400;
     }
+    .slide ul, .slide ol {
+        text-align: left;
+        max-width: 70ch;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 1em;
+        padding-left: 2em; /* Recuo padrão para listas */
+    }
+    .slide ul li, .slide ol li {
+        margin-bottom: 0.5em;
+        font-size: clamp(0.9em, 2vw, 1.1em);
+        color: var(--color-text-secondary);
+        line-height: 1.6;
+    }
 
     .placeholder-text { color: var(--color-text-light); font-style: italic; font-size: 0.9em; }
     .navigation-hint { margin-top: 3rem; font-size: 0.9em; color: var(--color-accent); }
+    .mt-1 { margin-top: 1rem !important; }
     .mt-2 { margin-top: 2rem !important; }
     .mt-3 { margin-top: 3rem !important; }
+    .mb-1 { margin-bottom: 1rem !important; }
+    .mb-2 { margin-bottom: 2rem !important; }
     .font-small { font-size: 0.9em; }
     .text-accent { color: var(--color-accent); }
+    .text-left { text-align: left !important; }
+    .w-full { width: 100% !important; }
+    .max-w-responsive { max-width: 800px; margin-left: auto; margin-right: auto; }
+
 
     .content-area {
       display: flex;
@@ -195,11 +214,10 @@
 
     .smart-gallery {
       display: grid;
-      /* Ajustado para 5 colunas em telas maiores, mas responsivo */
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 15px;
       width: 100%;
-      max-width: 800px; /* Ajustado para acomodar melhor 5 itens com espaçamento */
+      max-width: 800px;
       padding: 1rem;
       margin-top: 1.5rem;
       border-radius: 8px;
@@ -207,7 +225,7 @@
     }
     .gallery-item {
       background: #e9ecef;
-      aspect-ratio: 1 / 1; /* Para miniaturas quadradas */
+      aspect-ratio: 1 / 1;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -215,25 +233,17 @@
       cursor: pointer;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      overflow: hidden; /* Para a imagem não vazar do aspect-ratio */
+      overflow: hidden;
     }
     .gallery-item img {
         width: 100%;
         height: 100%;
-        object-fit: cover; /* Garante que a imagem cubra o item */
+        object-fit: cover;
         transition: transform 0.3s ease;
     }
-    .gallery-item:hover img {
-      transform: scale(1.1);
-    }
-     .gallery-item:hover {
-        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-     }
-    .gallery-item:focus-visible {
-        outline: 2px solid var(--color-accent);
-        outline-offset: 2px;
-    }
-
+    .gallery-item:hover img { transform: scale(1.1); }
+    .gallery-item:hover { box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+    .gallery-item:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
     .chart-placeholder-content,
     .table-placeholder-content {
@@ -267,19 +277,14 @@
     .table-placeholder-content tbody tr:nth-child(even) { background: #fcfdff; }
     .table-placeholder-content tbody tr:hover { background: #e9ecef; }
 
-    /* Estilos para o Slide FAQ Interativo */
     .faq-container {
       width: 100%;
       max-width: 700px;
       margin-top: 1.5rem;
       text-align: left;
     }
-    .faq-item {
-      border-bottom: 1px solid var(--placeholder-border);
-    }
-    .faq-item:last-child {
-      border-bottom: none;
-    }
+    .faq-item { border-bottom: 1px solid var(--placeholder-border); }
+    .faq-item:last-child { border-bottom: none; }
     .faq-question {
       display: flex;
       justify-content: space-between;
@@ -296,126 +301,264 @@
       text-align: left;
     }
     .faq-question:hover,
-    .faq-question:focus {
-      color: var(--color-accent);
-      outline: none;
-    }
-     .faq-question:focus-visible {
-        outline: 2px solid var(--color-accent);
-        outline-offset: 2px;
-    }
+    .faq-question:focus { color: var(--color-accent); outline: none; }
+    .faq-question:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
     .faq-icon {
       display: inline-block;
-      width: 1em;
-      height: 1em;
+      width: 1em; height: 1em;
       margin-left: 0.5em;
       transition: transform 0.3s ease;
       position: relative;
       flex-shrink: 0;
     }
-    .faq-icon::before,
-    .faq-icon::after {
+    .faq-icon::before, .faq-icon::after {
       content: '';
       position: absolute;
       background-color: currentColor;
       transition: transform 0.3s ease;
     }
-    .faq-icon::before {
-      top: 10%; bottom: 10%;
-      left: calc(50% - 1px);
-      width: 2px;
-    }
-    .faq-icon::after {
-      left: 10%; right: 10%;
-      top: calc(50% - 1px);
-      height: 2px;
-    }
-    .faq-question[aria-expanded="true"] .faq-icon::before {
-      transform: rotate(90deg);
-    }
-    .faq-question[aria-expanded="true"] .faq-icon::after {
-      transform: rotate(180deg);
-    }
+    .faq-icon::before { top: 10%; bottom: 10%; left: calc(50% - 1px); width: 2px; }
+    .faq-icon::after { left: 10%; right: 10%; top: calc(50% - 1px); height: 2px; }
+    .faq-question[aria-expanded="true"] .faq-icon::before { transform: rotate(90deg); }
+    .faq-question[aria-expanded="true"] .faq-icon::after { transform: rotate(180deg); }
     .faq-answer {
       padding: 0 0.5rem;
       font-size: clamp(0.9em, 2vw, 1.1em);
       line-height: 1.6;
       color: var(--color-text-secondary);
-      overflow: hidden; 
-      max-height: 0; 
-      opacity: 0; 
+      overflow: hidden;
+      max-height: 0; opacity: 0;
       transition: max-height 0.4s cubic-bezier(0.23, 1, 0.32, 1),
                   opacity 0.3s ease-out,
                   padding-top 0.4s cubic-bezier(0.23, 1, 0.32, 1),
                   padding-bottom 0.4s cubic-bezier(0.23, 1, 0.32, 1);
     }
     .faq-question[aria-expanded="true"] + .faq-answer {
-      max-height: 500px;
-      opacity: 1;
-      padding-top: 0.5rem;
-      padding-bottom: 1rem;
+      max-height: 500px; opacity: 1;
+      padding-top: 0.5rem; padding-bottom: 1rem;
     }
 
-    /* Estilos para o Modal da Galeria */
     .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        position: fixed; top: 0; left: 0;
+        width: 100%; height: 100%;
         background-color: var(--modal-overlay-bg);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.3s ease, visibility 0s linear 0.3s; /* Atraso na remoção da visibilidade */
-        z-index: 1000; /* Acima de tudo */
+        display: flex; justify-content: center; align-items: center;
+        opacity: 0; visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+        z-index: 1000;
     }
-    .modal-overlay.active {
-        opacity: 1;
-        visibility: visible;
-        transition: opacity 0.3s ease;
-    }
+    .modal-overlay.active { opacity: 1; visibility: visible; transition: opacity 0.3s ease; }
     .modal-content {
         position: relative;
-        background-color: var(--bg-slide); /* Pode ser transparente ou uma cor de fundo */
-        padding: 15px;
-        border-radius: 8px;
-        max-width: 90vw;  /* Máximo de 90% da largura da viewport */
-        max-height: 90vh; /* Máximo de 90% da altura da viewport */
-        display: flex; /* Para centralizar a imagem se ela for menor que max-width/height */
-        justify-content: center;
-        align-items: center;
+        background-color: var(--bg-slide);
+        padding: 15px; border-radius: 8px;
+        max-width: 90vw; max-height: 90vh;
+        display: flex; justify-content: center; align-items: center;
         box-shadow: 0 5px 25px rgba(0,0,0,0.3);
     }
     .modal-image {
-        display: block; /* Remove espaço extra abaixo da imagem */
-        max-width: 100%;
-        max-height: 100%;
-        width: auto; /* Mantém proporção */
-        height: auto; /* Mantém proporção */
-        object-fit: contain; /* Garante que toda a imagem seja visível */
+        display: block;
+        max-width: 100%; max-height: 100%;
+        width: auto; height: auto;
+        object-fit: contain;
     }
     .close-modal-button {
-        position: absolute;
-        top: -15px; /* Posição ajustável */
-        right: -15px; /* Posição ajustável */
-        background-color: #fff;
-        color: var(--color-text-primary);
-        border: none;
-        border-radius: 50%;
-        width: 35px;
-        height: 35px;
-        font-size: 1.5em;
-        line-height: 35px; /* Centraliza o 'X' */
-        text-align: center;
-        cursor: pointer;
+        position: absolute; top: -15px; right: -15px;
+        background-color: #fff; color: var(--color-text-primary);
+        border: none; border-radius: 50%;
+        width: 35px; height: 35px;
+        font-size: 1.5em; line-height: 35px;
+        text-align: center; cursor: pointer;
         box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         z-index: 1001;
     }
-    .close-modal-button:hover {
-        background-color: #f0f0f0;
+    .close-modal-button:hover { background-color: #f0f0f0; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+
+    /* NOVAS ESTRUTURAS CSS */
+    .quote-content {
+      font-size: clamp(1.5em, 4vw, 2.5em);
+      border-left: 5px solid var(--color-accent);
+      padding-left: 2rem;
+      margin: 2rem auto;
+      max-width: 60ch;
+      text-align: left;
+    }
+    .quote-content p {
+        color: var(--color-text-primary); /* Tornar a citação mais proeminente */
+        margin-bottom: 0.5em;
+    }
+    .quote-content cite {
+      display: block;
+      font-style: normal;
+      font-size: 0.7em;
+      color: var(--color-text-secondary);
+      margin-top: 1em;
+      text-align: right;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      width: 100%;
+      max-width: 900px;
+      margin-top: 2rem;
+    }
+    .team-member {
+      text-align: center;
+      background: var(--placeholder-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+    }
+    .team-member img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 1rem;
+      background-color: #ccc; /* Placeholder for avatar */
+      border: 3px solid var(--bg-slide);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .team-member h3 {
+      font-family: var(--font-primary);
+      font-size: 1.2em;
+      color: var(--color-text-primary);
+      margin-bottom: 0.3em;
+    }
+    .team-member p {
+      font-size: 0.9em;
+      color: var(--color-text-secondary);
+      margin-bottom: 0;
+    }
+
+    .process-steps {
+      list-style: none;
+      margin-top: 2rem;
+      max-width: 700px; /* Aumentado para melhor leitura */
+      width: 100%;
+      padding-left: 0; /* Remover padding padrão de ol/ul */
+      counter-reset: process-counter; /* Para numeração customizada */
+    }
+    .process-steps li {
+      padding: 1.5rem; /* Mais padding */
+      margin-bottom: 1.5rem; /* Mais espaçamento */
+      background: rgba(0,0,0,0.02);
+      border-left: 4px solid var(--color-accent);
+      position: relative;
+      text-align: left;
+      border-radius: 0 8px 8px 0;
+      counter-increment: process-counter; /* Incrementar contador */
+    }
+     .process-steps li::before { /* Adicionar número do passo customizado */
+      content: counter(process-counter);
+      position: absolute;
+      left: -40px; /* Ajustar posição do número */
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: var(--color-accent);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-primary);
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+    .process-steps li strong { /* Estilo para o título do passo */
+      font-family: var(--font-primary);
+      font-weight: 500;
+      color: var(--color-text-primary); /* Título mais escuro */
+      display: block;
+      margin-bottom: 0.5em;
+      font-size: 1.1em;
+    }
+     .process-steps li p {
+      font-size: clamp(0.9em, 2vw, 1em); /* Ajustar tamanho da fonte da descrição */
+      margin-bottom: 0; /* Remover margem inferior do parágrafo dentro do li */
+      color: var(--color-text-secondary);
+    }
+
+
+    .comparison-container {
+      display: flex;
+      flex-wrap: wrap; /* Para responsividade em telas menores */
+      gap: 2rem;
+      width: 100%;
+      max-width: 900px;
+      margin-top: 2rem;
+      text-align: left;
+    }
+    .comparison-column {
+      flex: 1;
+      min-width: 280px; /* Largura mínima para cada coluna */
+      background: var(--placeholder-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--placeholder-border);
+    }
+    .comparison-column h2 { /* h3 para subtítulos das colunas */
+      font-size: 1.5em;
+      margin-bottom: 1em;
+      text-align: center;
+      font-family: var(--font-primary);
+      border-bottom: 2px solid var(--placeholder-border);
+      padding-bottom: 0.5em;
+    }
+    .comparison-column ul {
+      list-style-position: inside;
+      padding-left: 0;
+    }
+    .comparison-column ul li {
+      margin-bottom: 0.75em; /* Mais espaço entre itens */
+      color: var(--color-text-secondary);
+    }
+     .comparison-column ul li::before { /* Customizar marcador */
+        content: "✓ "; /* Exemplo: checkmark para prós */
+        color: #28a745; /* Verde para prós */
+        font-weight: bold;
+        margin-right: 0.5em;
+    }
+    .comparison-column.cons ul li::before { /* Marcador para contras */
+        content: "✕ ";
+        color: #dc3545; /* Vermelho para contras */
+    }
+
+
+    .code-block {
+      background-color: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; /* Fontes monoespaçadas comuns */
+      font-size: clamp(0.8em, 1.8vw, 0.9em); /* Tamanho de fonte ajustado */
+      text-align: left;
+      max-width: 800px;
+      width: 100%;
+      margin-top: 1.5rem;
+      border: 1px solid #444; /* Borda sutil */
+      line-height: 1.5; /* Melhorar legibilidade */
+    }
+    .code-block code {
+      white-space: pre;
+    }
+    
+    /* Estilos para listas em slides como Agenda, Referências, Agradecimentos */
+    .list-slide ul, .list-slide ol {
+        max-width: 700px; /* Um pouco mais de largura para listas */
+        margin-top: 1.5rem;
+    }
+    .list-slide li {
+        padding: 0.3em 0;
+    }
+    .list-slide li strong { /* Para destacar autores ou termos chave em referências */
+        font-family: var(--font-primary);
+        color: var(--color-text-primary);
     }
 
   </style>
@@ -427,7 +570,7 @@
        tabindex="0">
 
     <div class="slide-counter" id="slideCounter" aria-live="polite">
-      </div>
+    </div>
 
     <section class="slide" id="slide1" role="group" aria-label="Slide 1: Título" aria-hidden="false">
       <h1>[Título Principal da Apresentação]</h1>
@@ -440,8 +583,22 @@
       </p>
     </section>
 
-    <section class="slide" id="slide2" role="group" aria-label="Slide 2: Imagem Horizontal" aria-hidden="true">
-      <h1>[Título do Slide 2]</h1>
+    <section class="slide" id="slide2" role="group" aria-label="Slide 2: Agenda/Sumário" aria-hidden="true">
+      <h1>Agenda</h1>
+      <h2>Tópicos da Apresentação</h2>
+      <ol class="list-slide text-left max-w-responsive">
+        <li>Introdução ao Tema</li>
+        <li>Contextualização e Problema</li>
+        <li>Metodologia Aplicada (se aplicável)</li>
+        <li>Resultados Principais</li>
+        <li>Análise e Discussão</li>
+        <li>Conclusões e Próximos Passos</li>
+      </ol>
+      <p class="placeholder-text mt-2">Este slide serve como um guia para a audiência.</p>
+    </section>
+
+    <section class="slide" id="slide3" role="group" aria-label="Slide 3: Imagem Horizontal" aria-hidden="true">
+      <h1>[Título do Slide de Imagem]</h1>
       <p>[Texto explicativo sobre o tópico. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.]</p>
       <div class="content-area">
         <div class="placeholder-content placeholder-image-horizontal">
@@ -452,8 +609,8 @@
       </div>
     </section>
 
-    <section class="slide" id="slide3" role="group" aria-label="Slide 3: Imagem Vertical" aria-hidden="true">
-      <h1>[Título do Slide 3]</h1>
+    <section class="slide" id="slide4" role="group" aria-label="Slide 4: Imagem Vertical" aria-hidden="true">
+      <h1>[Título do Slide com Imagem Vertical]</h1>
       <div class="content-area centered-items">
         <div class="text-content">
           <p>[Detalhes sobre o conteúdo. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.]</p>
@@ -469,9 +626,9 @@
       </div>
     </section>
 
-    <section class="slide" id="slide4" role="group" aria-label="Slide 4: Composição Visual" aria-hidden="true">
+    <section class="slide" id="slide5" role="group" aria-label="Slide 5: Composição Visual" aria-hidden="true">
       <h1>[Composição Visual]</h1>
-      <h2>[Destaque com Múltiplas Imagens]</h2>
+      <h2>[Destaque com Múltiplas Mídias]</h2>
       <div class="content-area centered-items">
         <div class="placeholder-content placeholder-image-vertical mt-2" style="max-width:250px;min-height:280px;">
           <strong>Imagem Vertical A</strong>
@@ -487,7 +644,7 @@
       </p>
     </section>
 
-    <section class="slide" id="slide5" role="group" aria-label="Slide 5: Vídeo" aria-hidden="true">
+    <section class="slide" id="slide6" role="group" aria-label="Slide 6: Vídeo" aria-hidden="true">
       <h1>[Incorporação de Vídeo]</h1>
       <h2>[Conteúdo Multimídia]</h2>
       <div class="video-container-placeholder">
@@ -502,7 +659,7 @@
       </p>
     </section>
 
-    <section class="slide" id="slide6" role="group" aria-label="Slide 6: Galeria de Fotos" aria-hidden="true">
+    <section class="slide" id="slide7" role="group" aria-label="Slide 7: Galeria de Fotos" aria-hidden="true">
       <h1>[Galeria de Fotos com Modal]</h1>
       <h2>[Clique para ampliar]</h2>
       <div class="smart-gallery">
@@ -527,7 +684,7 @@
       </p>
     </section>
 
-    <section class="slide" id="slide7" role="group" aria-label="Slide 7: Dados e Análises" aria-hidden="true">
+    <section class="slide" id="slide8" role="group" aria-label="Slide 8: Dados e Análises" aria-hidden="true">
       <h1>[Análise de Dados]</h1>
       <h2>[Métricas e Comparações]</h2>
       <div class="content-area">
@@ -557,20 +714,91 @@
       </div>
     </section>
 
-    <section class="slide" id="slide8" role="group" aria-label="Slide 8: Conclusão" aria-hidden="true">
-      <h1>[Conclusão e Próximos Passos]</h1>
-      <h2>[Resumo e CTA]</h2>
-      <p class="lead placeholder-text">
-        Recapitule os pontos-chave e direcione para a ação.
-      </p>
-      <div class="mt-3" style="font-size:1.1em;">
-        <p><strong>Contato:</strong> seuemail@exemplo.com.br</p>
-        <p><strong>Website:</strong> www.seusiteincrivel.com</p>
-      </div>
-      <p class="text-accent mt-3">Obrigado pela atenção!</p>
+    <section class="slide" id="slide9" role="group" aria-label="Slide 9: Citação Inspiradora" aria-hidden="true">
+        <h1>Citação</h1>
+        <blockquote class="quote-content">
+          <p>"A imaginação é mais importante que o conhecimento. O conhecimento é limitado, enquanto a imaginação abraça o mundo inteiro, estimulando o progresso, dando à luz a evolução."</p>
+          <cite>Albert Einstein</cite>
+        </blockquote>
+        <p class="placeholder-text mt-2">Use este slide para destacar uma citação relevante.</p>
     </section>
 
-    <section class="slide" id="slide9" role="group" aria-label="Slide 9: Perguntas Frequentes" aria-hidden="true">
+    <section class="slide" id="slide10" role="group" aria-label="Slide 10: Equipe" aria-hidden="true">
+        <h1>Nossa Equipe</h1>
+        <h2>Conheça os Responsáveis</h2>
+        <div class="team-grid">
+          <div class="team-member">
+            <img src="https://i.pravatar.cc/150?img=1" alt="Foto de Ana Silva">
+            <h3>Ana Silva</h3>
+            <p>Líder de Projeto</p>
+          </div>
+          <div class="team-member">
+            <img src="https://i.pravatar.cc/150?img=2" alt="Foto de Carlos Souza">
+            <h3>Carlos Souza</h3>
+            <p>Desenvolvedor Frontend</p>
+          </div>
+          <div class="team-member">
+            <img src="https://i.pravatar.cc/150?img=3" alt="Foto de Beatriz Lima">
+            <h3>Beatriz Lima</h3>
+            <p>UX/UI Designer</p>
+          </div>
+        </div>
+        <p class="placeholder-text mt-3">Apresente os membros chave da sua equipe ou projeto.</p>
+    </section>
+
+    <section class="slide" id="slide11" role="group" aria-label="Slide 11: Processo" aria-hidden="true">
+        <h1>Nosso Processo</h1>
+        <h2>Etapas Fundamentais</h2>
+        <ol class="process-steps">
+          <li><strong>Planejamento:</strong> Definição de escopo, objetivos e cronograma. Análise de requisitos e identificação de stakeholders.</li>
+          <li><strong>Design:</strong> Criação de wireframes, protótipos e design visual. Foco na experiência do usuário e usabilidade.</li>
+          <li><strong>Desenvolvimento:</strong> Implementação das funcionalidades, codificação e testes unitários. Integração de sistemas.</li>
+          <li><strong>Testes e Qualidade:</strong> Testes funcionais, de performance e segurança. Garantia da qualidade do produto final.</li>
+          <li><strong>Implantação e Feedback:</strong> Lançamento do projeto e coleta de feedback para melhorias contínuas.</li>
+        </ol>
+        <p class="placeholder-text mt-2">Descreva as etapas de um processo ou linha do tempo.</p>
+    </section>
+
+    <section class="slide" id="slide12" role="group" aria-label="Slide 12: Comparação" aria-hidden="true">
+        <h1>Análise Comparativa</h1>
+        <h2>[Opção A] vs [Opção B]</h2>
+        <div class="comparison-container">
+          <div class="comparison-column">
+            <h3>[Opção A: Vantagens]</h3>
+            <ul>
+              <li>Ponto positivo chave 1</li>
+              <li>Benefício importante 2</li>
+              <li>Característica destacada 3</li>
+            </ul>
+          </div>
+          <div class="comparison-column cons"> <h3>[Opção B: Vantagens / Opção A: Desvantagens]</h3>
+            <ul>
+              <li>Ponto positivo chave 1 (Opção B)</li>
+              <li>Benefício importante 2 (Opção B)</li>
+              <li>Ponto a considerar 3</li>
+            </ul>
+          </div>
+        </div>
+        <p class="placeholder-text mt-3">Use para comparar características, prós/contras, etc.</p>
+    </section>
+
+    <section class="slide" id="slide13" role="group" aria-label="Slide 13: Bloco de Código" aria-hidden="true">
+        <h1>Exemplo de Código</h1>
+        <h2>[Linguagem ou Finalidade do Código]</h2>
+        <pre class="code-block"><code>function greet(name) {
+  // Retorna uma saudação personalizada.
+  if (name) {
+    return `Olá, ${name}! Bem-vindo(a).`;
+  } else {
+    return "Olá! Bem-vindo(a).";
+  }
+}
+
+console.log(greet("Usuário"));</code></pre>
+        <p class="placeholder-text mt-2">Ideal para demonstrar trechos de código relevantes.</p>
+    </section>
+    
+    <section class="slide" id="slide14" role="group" aria-label="Slide 14: Perguntas Frequentes (FAQ)" aria-hidden="true">
       <h1>Perguntas Frequentes</h1>
       <div class="faq-container">
         <div class="faq-item">
@@ -602,23 +830,64 @@
           </button>
           <div class="faq-answer" id="faq-answer-3" role="region">
             <p>
-              A galeria utiliza CSS Grid com <code>repeat(auto-fill, minmax(130px, 1fr))</code>, o que significa que ela tentará preencher o espaço com o máximo de colunas de pelo menos 130px de largura, ajustando-se automaticamente ao tamanho da tela e ao número de itens.
+              A galeria utiliza CSS Grid com <code>repeat(auto-fit, minmax(130px, 1fr))</code>, o que significa que ela tentará preencher o espaço com o máximo de colunas de pelo menos 130px de largura, ajustando-se automaticamente ao tamanho da tela e ao número de itens.
             </p>
           </div>
         </div>
       </div>
       <p class="placeholder-text mt-3">Clique nas perguntas para ver as respostas.</p>
     </section>
+
+    <section class="slide" id="slide15" role="group" aria-label="Slide 15: Referências" aria-hidden="true">
+        <h1>Referências</h1>
+        <h2>Fontes Consultadas</h2>
+        <ul class="list-slide text-left max-w-responsive">
+            <li><strong>Autor A. A.</strong> (Ano). <em>Título do Trabalho ou Artigo</em>. Nome da Publicação/Conferência. DOI ou URL.</li>
+            <li><strong>Smith, J., & Doe, M.</strong> (2023). <em>A Comprehensive Study on Web Presentations</em>. Journal of Modern Web Technologies, 15(2), 45-67. https://doi.org/fake.doi.123</li>
+            <li><strong>WebsiteName.com</strong>. (Data de Acesso). <em>Título da Página Específica</em>. Recuperado de https://www.examplereference.com/page</li>
+            <li>[Adicione mais referências conforme necessário]</li>
+        </ul>
+        <p class="placeholder-text mt-2">Liste as fontes bibliográficas e referências importantes.</p>
+    </section>
+
+    <section class="slide" id="slide16" role="group" aria-label="Slide 16: Agradecimentos" aria-hidden="true">
+        <h1>Agradecimentos</h1>
+        <h2>Reconhecimentos</h2>
+        <div class="text-left max-w-responsive">
+            <p class="mt-1">Gostaríamos de agradecer a todos que contribuíram para este projeto/estudo:</p>
+            <ul class="list-slide">
+                <li>À <strong>Instituição X</strong> pelo apoio financeiro e infraestrutura.</li>
+                <li>Aos <strong>colaboradores Y e Z</strong> por suas valiosas contribuições e insights.</li>
+                <li>Aos <strong>participantes da pesquisa</strong> (se aplicável) pela sua dedicação.</li>
+                <li>A você, pela sua atenção!</li>
+            </ul>
+        </div>
+        <p class="placeholder-text mt-3">Um espaço para agradecer a indivíduos ou instituições.</p>
+    </section>
+
+    <section class="slide" id="slide17" role="group" aria-label="Slide 17: Conclusão e Contato" aria-hidden="true">
+      <h1>[Conclusão e Próximos Passos]</h1>
+      <h2>[Resumo dos Pontos Chave e Chamada para Ação Específica]</h2>
+      <p class="lead placeholder-text">
+        Recapitule os pontos-chave da apresentação. Por exemplo: "Demonstramos como a tecnologia X pode otimizar Y." Em seguida, direcione para uma ação específica: "Para saber mais e testar nossa demo, visite nosso site."
+      </p>
+      <div class="mt-3" style="font-size:1.1em;">
+        <p><strong>Contato:</strong> seuemail@exemplo.com.br</p>
+        <p><strong>Website:</strong> www.seusiteincrivel.com</p>
+        <p><strong>LinkedIn:</strong> linkedin.com/in/seu_perfil</p>
+      </div>
+      <p class="text-accent mt-3">Obrigado pela atenção!</p>
+    </section>
+
   </div>
 
   <div id="imageModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content" role="document">
-      <h2 id="modalTitle" class="visually-hidden">Imagem Ampliada</h2> <button class="close-modal-button" aria-label="Fechar modal">&times;</button>
+      <h2 id="modalTitle" class="visually-hidden">Imagem Ampliada</h2>
+      <button class="close-modal-button" aria-label="Fechar modal">&times;</button>
       <img src="" alt="Imagem ampliada da galeria" class="modal-image" id="modalImageContent">
     </div>
   </div>
-  <style>.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }</style>
-
 
   <script>
     (function(){
@@ -628,11 +897,9 @@
       let current = 0;
       let total = slides.length;
 
-      // Elementos do Modal da Galeria
       const imageModal = document.getElementById('imageModal');
       const modalImageContent = document.getElementById('modalImageContent');
       const closeModalButton = imageModal.querySelector('.close-modal-button');
-
 
       const init = () => {
         slides.forEach((s,i) => {
@@ -646,7 +913,7 @@
         });
         updateCounter();
         setupFaq();
-        setupGalleryModal(); // Nova função para configurar a galeria com modal
+        setupGalleryModal();
         if(presentationContainer) presentationContainer.focus();
       };
 
@@ -671,8 +938,7 @@
 
         newSlide.classList.remove('exit-left','exit-right','prepare-next','prepare-prev');
         newSlide.classList.add(index > current ? 'prepare-next' : 'prepare-prev');
-        
-        void newSlide.offsetWidth; 
+        void newSlide.offsetWidth; // Force reflow para garantir que a transição de 'prepare' aconteça
 
         newSlide.classList.add('active');
         newSlide.classList.remove('prepare-next','prepare-prev');
@@ -684,44 +950,46 @@
       };
 
       const setupFaq = () => {
-        const faqItems = document.querySelectorAll('.faq-item');
-        faqItems.forEach(item => {
-          const questionButton = item.querySelector('.faq-question');
-          const answerPanel = item.querySelector('.faq-answer');
-          
-          if (questionButton && answerPanel) {
-            const answerPanelId = answerPanel.getAttribute('id');
-            if (answerPanelId) {
-                 questionButton.setAttribute('aria-controls', answerPanelId);
-            } else {
-                const uniqueId = 'faq-answer-' + Math.random().toString(36).substr(2, 9);
-                answerPanel.setAttribute('id', uniqueId);
-                questionButton.setAttribute('aria-controls', uniqueId);
-            }
-            if(questionButton.getAttribute('aria-expanded') !== 'true'){
-                 questionButton.setAttribute('aria-expanded', 'false');
-            }
+        const faqContainers = document.querySelectorAll('.faq-container'); // Handle multiple FAQ sections if any
+        faqContainers.forEach(container => {
+            const faqItems = container.querySelectorAll('.faq-item');
+            faqItems.forEach(item => {
+              const questionButton = item.querySelector('.faq-question');
+              const answerPanel = item.querySelector('.faq-answer');
 
-            questionButton.addEventListener('click', () => {
-              const isExpanded = questionButton.getAttribute('aria-expanded') === 'true';
-              questionButton.setAttribute('aria-expanded', String(!isExpanded));
+              if (questionButton && answerPanel) {
+                let answerPanelId = answerPanel.getAttribute('id');
+                if (!answerPanelId) {
+                    answerPanelId = 'faq-answer-' + Math.random().toString(36).substr(2, 9);
+                    answerPanel.setAttribute('id', answerPanelId);
+                }
+                questionButton.setAttribute('aria-controls', answerPanelId);
+
+                if(questionButton.getAttribute('aria-expanded') !== 'true'){
+                     questionButton.setAttribute('aria-expanded', 'false');
+                }
+
+                questionButton.addEventListener('click', () => {
+                  const isExpanded = questionButton.getAttribute('aria-expanded') === 'true';
+                  questionButton.setAttribute('aria-expanded', String(!isExpanded));
+                });
+              }
             });
-          }
         });
       };
 
       const setupGalleryModal = () => {
-        const galleryItems = document.querySelectorAll('#slide6 .gallery-item');
-        let previouslyFocusedElement = null; // Para restaurar o foco
+        const galleries = document.querySelectorAll('.smart-gallery'); // Handle multiple galleries
+        let previouslyFocusedElement = null;
 
         const openModal = (imageSrc, altText) => {
             if (!imageModal || !modalImageContent) return;
-            previouslyFocusedElement = document.activeElement; // Salva o foco atual
+            previouslyFocusedElement = document.activeElement;
             modalImageContent.src = imageSrc;
             modalImageContent.alt = altText || "Imagem ampliada da galeria";
             imageModal.classList.add('active');
             imageModal.setAttribute('aria-hidden', 'false');
-            if(closeModalButton) closeModalButton.focus(); // Foca no botão de fechar
+            if(closeModalButton) closeModalButton.focus();
         };
 
         const closeModal = () => {
@@ -729,45 +997,46 @@
             imageModal.classList.remove('active');
             imageModal.setAttribute('aria-hidden', 'true');
             if (previouslyFocusedElement) {
-                previouslyFocusedElement.focus(); // Restaura o foco
+                previouslyFocusedElement.focus();
             }
         };
 
-        galleryItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const fullImageSrc = item.dataset.fullImageSrc;
-                const altText = item.querySelector('img')?.alt || "Imagem da galeria";
-                if (fullImageSrc) {
-                    openModal(fullImageSrc, altText);
-                }
-            });
-            // Permitir abrir com Enter/Espaço para acessibilidade
-            item.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
+        galleries.forEach(gallery => {
+            const galleryItems = gallery.querySelectorAll('.gallery-item');
+            galleryItems.forEach(item => {
+                item.addEventListener('click', () => {
                     const fullImageSrc = item.dataset.fullImageSrc;
                     const altText = item.querySelector('img')?.alt || "Imagem da galeria";
-                     if (fullImageSrc) {
+                    if (fullImageSrc) {
                         openModal(fullImageSrc, altText);
                     }
-                }
+                });
+                item.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const fullImageSrc = item.dataset.fullImageSrc;
+                        const altText = item.querySelector('img')?.alt || "Imagem da galeria";
+                         if (fullImageSrc) {
+                            openModal(fullImageSrc, altText);
+                        }
+                    }
+                });
             });
         });
+
 
         if(closeModalButton) {
             closeModalButton.addEventListener('click', closeModal);
         }
 
         if(imageModal) {
-            // Fechar ao clicar no overlay (fora do conteúdo do modal)
             imageModal.addEventListener('click', (event) => {
-                if (event.target === imageModal) { // Se o clique foi diretamente no overlay
+                if (event.target === imageModal) {
                     closeModal();
                 }
             });
         }
-        
-        // Fechar com a tecla Escape
+
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && imageModal && imageModal.classList.contains('active')) {
                 closeModal();
@@ -775,29 +1044,31 @@
         });
       };
 
-
       document.addEventListener('keydown', e => {
         if (imageModal && imageModal.classList.contains('active')) {
-            // Não interfere com a navegação dos slides se o modal estiver ativo,
-            // exceto pela tecla Escape que já é tratada.
             return;
         }
 
         if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
             const activeElement = document.activeElement;
-            const isFocusInInput = activeElement && (activeElement.tagName === 'INPUT' || 
-                                   activeElement.tagName === 'TEXTAREA' || 
-                                   activeElement.isContentEditable);
-            
+            const isFocusInInput = activeElement && (activeElement.tagName === 'INPUT' ||
+                                    activeElement.tagName === 'TEXTAREA' ||
+                                    activeElement.isContentEditable);
+
             if (isFocusInInput) {
-                return; 
+                return;
+             }
+
+            let inInteractiveElement = false;
+            if (activeElement) {
+                const interactiveParents = ['.faq-container', '.smart-gallery', '.table-placeholder-content']; // Add other scrollable/interactive parents here
+                if (interactiveParents.some(selector => activeElement.closest(selector))) {
+                    inInteractiveElement = true;
+                }
             }
-            if(presentationContainer && document.activeElement !== presentationContainer && !presentationContainer.contains(document.activeElement) && !['BUTTON', 'A'].includes(activeElement.tagName) && activeElement.closest && !activeElement.closest('.faq-question') && !activeElement.closest('.gallery-item')) {
-                // Se o foco não estiver em algo interativo, previne o scroll
-                 e.preventDefault();
-            } else if (!isFocusInInput && !activeElement.closest('.faq-container') && !activeElement.closest('.smart-gallery')) {
-                 // Previne scroll se o foco não estiver no FAQ ou galeria (que podem ter sua própria navegação interna)
-                 e.preventDefault();
+
+            if (!inInteractiveElement) {
+                e.preventDefault();
             }
         }
 

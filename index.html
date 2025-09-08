@@ -1,1424 +1,866 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="neon">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f0f2f5">
-  <title>Apresentação de Slides Otimizada e Interativa</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    /* Reset Global e Box-Sizing */
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    :root {
-      --font-primary: 'Montserrat', sans-serif;
-      --font-secondary: 'Lato', sans-serif;
-      --color-text-primary: #212529;
-      --color-text-secondary: #495057;
-      --color-text-light: #6c757d;
-      --bg-body: #f0f2f5;
-      --bg-slide: #ffffff;
-      --color-accent: #007bff;
-      --placeholder-border: #ced4da;
-      --placeholder-bg: rgba(0,0,0,0.02);
-      --modal-overlay-bg: rgba(0, 0, 0, 0.8);
-      /* Cores para o mapa mental */
-      --mindmap-color-purple: #A085BD;
-      --mindmap-color-habits-pink: #F8C8DC;
-      --mindmap-color-habits-items-green: #D4EDBC;
-      --mindmap-color-org-light-orange: #FADAAA;
-      --mindmap-color-org-item-beige: #FCECDD;
-      --mindmap-color-learn-light-orange: #FAEBD7;
-      --mindmap-color-learn-items-lavender: #E2D9FF;
-      --mindmap-color-goals-beige: #FCECDD;
-      --mindmap-color-goals-items-purple: #D7BEFB;
-      --mindmap-color-motiv-light-blue: #BDE0FE;
-      --mindmap-color-motiv-items-peach: #FEC89A;
-      --mindmap-color-review-green: #A2D2FF;
-      --mindmap-color-review-items-red: #FFADAD;
-      /* Cores para bloco de código */
-      --code-bg: #2d2d2d;
-      --code-text: #f0f0f0;
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      font-family: var(--font-secondary);
-      background: var(--bg-body);
-      color: var(--color-text-primary);
-      overflow: hidden;
-    }
-
-    .presentation-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      outline: none;
-    }
-
-    .slide-counter {
-      position: absolute;
-      bottom: 1.5rem;
-      right: 2rem;
-      font-family: var(--font-secondary);
-      font-size: 0.85em;
-      background: rgba(0,0,0,0.4);
-      color: #fff;
-      padding: 0.5em 1em;
-      border-radius: 20px;
-      z-index: 10;
-    }
-
-    .slide {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      padding: 5vw;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      background: var(--bg-slide);
-      opacity: 0;
-      transform: translateX(100%);
-      transition: opacity 0.6s ease, transform 0.6s ease;
-      overflow-y: auto;
-    }
-    .slide.active {
-      opacity: 1;
-      transform: translateX(0);
-      z-index: 2;
-    }
-    .slide.exit-left {
-      opacity: 0;
-      transform: translateX(-100%);
-      z-index: 1;
-    }
-    .slide.exit-right {
-      opacity: 0;
-      transform: translateX(100%);
-      z-index: 1;
-    }
-    .slide.prepare-next { opacity: 0; transform: translateX(100%); }
-    .slide.prepare-prev { opacity: 0; transform: translateX(-100%); }
-
-    .slide h1 {
-      font-family: var(--font-primary);
-      font-weight: 700;
-      font-size: clamp(2em, 5vw, 3.5em);
-      color: var(--color-text-primary);
-      margin-bottom: 0.5em;
-      padding-bottom: 0.3em;
-      border-bottom: 3px solid var(--color-accent);
-      display: inline-block;
-    }
-    .slide h2 {
-      font-family: var(--font-primary);
-      font-weight: 500;
-      font-size: clamp(1.5em, 4vw, 2.2em);
-      color: var(--color-text-secondary);
-      margin-bottom: 1em;
-    }
-    .slide p {
-      font-size: clamp(1em, 2.5vw, 1.2em);
-      color: var(--color-text-light);
-      line-height: 1.7;
-      max-width: 70ch;
-      margin-bottom: 1em;
-    }
-    .slide p.lead {
-      font-size: clamp(1.1em, 3vw, 1.4em);
-      color: var(--color-text-secondary);
-      font-weight: 400;
-    }
-     .slide ul, .slide ol {
-        text-align: left;
-        max-width: 70ch;
-        margin-left: auto;
-        margin-right: auto;
-        margin-bottom: 1em;
-        padding-left: 2em; /* Recuo padrão para listas */
-    }
-    .slide ul li, .slide ol li {
-        margin-bottom: 0.5em;
-        font-size: clamp(0.9em, 2vw, 1.1em);
-        color: var(--color-text-secondary);
-        line-height: 1.6;
-    }
-
-    .placeholder-text { color: var(--color-text-light); font-style: italic; font-size: 0.9em; }
-    .navigation-hint { margin-top: 3rem; font-size: 0.9em; color: var(--color-accent); }
-    .mt-1 { margin-top: 1rem !important; }
-    .mt-2 { margin-top: 2rem !important; }
-    .mt-3 { margin-top: 3rem !important; }
-    .mb-1 { margin-bottom: 1rem !important; }
-    .mb-2 { margin-bottom: 2rem !important; }
-    .font-small { font-size: 0.9em; }
-    .text-accent { color: var(--color-accent); }
-    .text-left { text-align: left !important; }
-    .w-full { width: 100% !important; }
-    .max-w-responsive { max-width: 800px; margin-left: auto; margin-right: auto; }
-
-
-    .content-area {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
-      align-items: flex-start;
-      width: 100%;
-      gap: 30px;
-      margin-top: 2rem;
-    }
-    .content-area.centered-items { align-items: center; }
-    .text-content { flex: 2; text-align: left; }
-    .text-content p { max-width: none; }
-
-    .placeholder-content {
-      flex: 1;
-      background: var(--placeholder-bg);
-      border: 2px dashed var(--placeholder-border);
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.03);
-      text-align: center;
-      color: var(--color-text-light);
-    }
-    .placeholder-content strong {
-      font-family: var(--font-primary);
-      font-size: 1.1em;
-      color: var(--color-text-secondary);
-      margin-bottom: 0.5em;
-    }
-    .placeholder-content p.small-info {
-      font-size: 0.8em;
-      line-height: 1.4;
-    }
-    .placeholder-image-vertical { max-width: 300px; min-height: 350px; }
-    .placeholder-image-horizontal { max-width: 600px; min-height: 250px; }
-
-    .video-container-placeholder {
-      width: clamp(300px, 70%, 800px);
-      height: clamp(200px, 50vh, 450px);
-      background: #111;
-      color: #fff;
-      margin: 2rem auto;
-      padding: 1rem;
-      border-radius: 8px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    .video-container-placeholder p { color: #eee; }
-    .video-container-placeholder code {
-      background: #333;
-      color: #f0f0f0;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.85em;
-      word-break: break-all;
-    }
-
-    .smart-gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 15px;
-      width: 100%;
-      max-width: 800px;
-      padding: 1rem;
-      margin-top: 1.5rem;
-      border-radius: 8px;
-      background: rgba(0,0,0,0.01);
-    }
-    .gallery-item {
-      background: #e9ecef;
-      aspect-ratio: 1 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-      overflow: hidden;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    .gallery-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.3s ease;
-    }
-    .gallery-item:hover img { transform: scale(1.1); }
-    .gallery-item:hover { box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
-    .gallery-item:focus-visible {
-      outline: 2px solid var(--color-accent);
-      outline-offset: 2px;
-    }
-
-    .chart-placeholder-content,
-    .table-placeholder-content {
-      padding: 25px;
-      min-height: 320px;
-    }
-    .chart-placeholder-content { flex: 1.5; }
-    .table-placeholder-content { flex: 1; }
-    .table-placeholder-content table {
-      width: 100%;
-      margin-top: 1rem;
-      border-collapse: collapse;
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .table-placeholder-content th,
-    .table-placeholder-content td {
-      border: 1px solid #dee2e6;
-      padding: 12px 15px;
-      font-size: 0.9em;
-      color: var(--color-text-secondary);
-      text-align: left;
-    }
-    .table-placeholder-content th {
-      background: #f8f9fa;
-      color: var(--color-text-primary);
-      font-family: var(--font-primary);
-      font-weight: 600;
-    }
-    .table-placeholder-content tbody tr:nth-child(even) { background: #fcfdff; }
-    .table-placeholder-content tbody tr:hover { background: #e9ecef; }
-
-    .faq-container {
-      width: 100%;
-      max-width: 700px;
-      margin-top: 1.5rem;
-      text-align: left;
-    }
-    .faq-item { border-bottom: 1px solid var(--placeholder-border); }
-    .faq-item:last-child { border-bottom: none; }
-    .faq-question {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      padding: 1rem 0.5rem;
-      font-family: var(--font-primary);
-      font-size: clamp(1em, 2.5vw, 1.2em);
-      font-weight: 500;
-      color: var(--color-text-primary);
-      background: none;
-      border: none;
-      cursor: pointer;
-      text-align: left;
-    }
-    .faq-question:hover,
-    .faq-question:focus { color: var(--color-accent); outline: none; }
-    .faq-question:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-    .faq-icon {
-      display: inline-block;
-      width: 1em;
-      height: 1em;
-      margin-left: 0.5em;
-      transition: transform 0.3s ease;
-      position: relative;
-      flex-shrink: 0;
-    }
-    .faq-icon::before,
-    .faq-icon::after {
-      content: '';
-      position: absolute;
-      background-color: currentColor;
-      transition: transform 0.3s ease;
-    }
-    .faq-icon::before { top: 10%; bottom: 10%; left: calc(50% - 1px); width: 2px; }
-    .faq-icon::after { left: 10%; right: 10%; top: calc(50% - 1px); height: 2px; }
-    .faq-question[aria-expanded="true"] .faq-icon::before {
-      transform: rotate(90deg);
-    }
-    .faq-question[aria-expanded="true"] .faq-icon::after {
-      transform: rotate(180deg);
-    }
-    .faq-answer {
-      padding: 0 0.5rem;
-      font-size: clamp(0.9em, 2vw, 1.1em);
-      line-height: 1.6;
-      color: var(--color-text-secondary);
-      overflow: hidden;
-      max-height: 0;
-      opacity: 0;
-      transition:
-        max-height 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-        opacity 0.3s ease-out,
-        padding-top 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-        padding-bottom 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    }
-    .faq-question[aria-expanded="true"] + .faq-answer {
-      max-height: 500px;
-      opacity: 1;
-      padding-top: 0.5rem;
-      padding-bottom: 1rem;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: var(--modal-overlay-bg);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0s linear 0.3s;
-      z-index: 1000;
-    }
-    .modal-overlay.active {
-      opacity: 1;
-      visibility: visible;
-      transition: opacity 0.3s ease;
-    }
-    .modal-content {
-      position: relative;
-      background-color: var(--bg-slide);
-      padding: 15px;
-      border-radius: 8px;
-      max-width: 90vw;
-      max-height: 90vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 5px 25px rgba(0,0,0,0.3);
-    }
-    .modal-image {
-      display: block;
-      max-width: 100%;
-      max-height: 100%;
-      width: auto; /* Garante que a imagem não ultrapasse o contêiner, mantendo proporção */
-      height: auto; /* Garante que a imagem não ultrapasse o contêiner, mantendo proporção */
-      object-fit: contain;
-    }
-    .close-modal-button {
-      position: absolute;
-      top: -15px; right: -15px;
-      background-color: #fff;
-      color: var(--color-text-primary);
-      border: none;
-      border-radius: 50%;
-      width: 35px; height: 35px;
-      font-size: 1.5em;
-      line-height: 35px;
-      text-align: center;
-      cursor: pointer;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-      z-index: 1001;
-    }
-    .close-modal-button:hover { background-color: #f0f0f0; }
-    .visually-hidden {
-      position: absolute;
-      width: 1px; height: 1px;
-      margin: -1px; padding: 0;
-      overflow: hidden; clip: rect(0,0,0,0);
-      border: 0;
-    }
-
-    /* ===== Estilos do Mapa Mental (Otimizados) ===== */
-    .slide-with-mindmap .mindmap-slide-container { /* Usar classe específica para o slide */
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .slide-with-mindmap .mindmap-wrapper {
-      width: 100%;
-      max-width: 95%;
-      max-height: 65vh; /* Ajustável conforme necessidade */
-      overflow: auto; /* Permite scroll se o mapa for maior */
-      padding: 20px; /* Aumentar padding interno */
-      border: 1px solid var(--placeholder-border);
-      border-radius: 8px;
-      background: #fdfdfd;
-      margin-top: 1rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-    .slide-with-mindmap .mindmap-container {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 600px; /* Largura mínima para o layout do mapa */
-      padding-bottom: 20px; /* Espaço para conectores inferiores */
-    }
-    .slide-with-mindmap .mindmap-node {
-      padding: 10px 15px; /* Aumentar padding */
-      border-radius: 12px; /* Bordas mais arredondadas */
-      color: var(--color-text-primary); /* Usar cor primária para melhor contraste */
-      font-size: clamp(0.85em, 1.8vw, 1.05em);
-      text-align: center;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.12); /* Sombra mais suave */
-      margin: 5px;
-      min-width: 80px;
-      position: relative;
-      z-index: 1;
-      border: 1px solid transparent; /* Para consistência, mesmo que a cor de fundo cubra */
-      background-color: #fff; /* Fundo padrão para nós, cores específicas sobrescrevem */
-    }
-    .slide-with-mindmap .central-topic {
-      padding: 15px 25px;
-      font-size: clamp(1.1em, 2.5vw, 1.6em);
-      font-weight: bold;
-      margin-bottom: 30px; /* Mais espaço abaixo do tópico central */
-      z-index: 10;
-      background-color: var(--mindmap-color-purple);
-      color: white;
-      border-color: var(--mindmap-color-purple);
-    }
-    .slide-with-mindmap .mindmap { /* Container dos ramos principais */
-      list-style: none;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap; /* Permite que os ramos quebrem linha */
-      justify-content: center;
-      align-items: flex-start; /* Alinha os ramos no topo */
-      gap: 20px 40px; /* Espaçamento entre ramos */
-      position: relative;
-    }
-    .slide-with-mindmap .mindmap-branch { /* Cada ramo principal */
-      list-style: none;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-    .slide-with-mindmap .toggle-children { /* Botão +/- */
-      background-color: var(--color-text-light);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 22px; height: 22px;
-      font-size: 14px; line-height: 22px; /* Ajustar para centralizar o texto */
-      text-align: center;
-      cursor: pointer;
-      /* Posicionamento sutil sobre o nó pai ou conector */
-      margin-top: -12px; /* Sobrepor um pouco o nó pai */
-      margin-bottom: 5px; /* Espaço antes dos filhos */
-      margin-left: auto; /* Empurra para a direita do nó */
-      margin-right: -15px; /* Levemente para fora da borda direita do nó */
-      position: relative; /* Para z-index funcionar */
-      z-index: 5;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-      transition: background-color 0.2s ease;
-    }
-    .slide-with-mindmap .toggle-children:hover {
-      background-color: var(--color-accent);
-    }
-    .slide-with-mindmap .mindmap-branch > ul { /* Lista de sub-nós */
-      list-style: none;
-      padding-left: 0;
-      margin-top: 10px; /* Espaço após o nó pai/botão */
-      display: flex; /* Mantido, mas o display é controlado por JS */
-      flex-direction: column;
-      align-items: center;
-      gap: 10px; /* Espaçamento entre sub-nós */
-      position: relative;
-    }
-    .slide-with-mindmap .mindmap-node.sub-node {
-      font-size: clamp(0.75em, 1.5vw, 0.95em);
-      padding: 8px 12px;
-      border-radius: 10px;
-    }
-
-    /* Cores específicas do Mapa Mental (mantidas) */
-    .slide-with-mindmap .mindmap-node[data-color="habits-pink"] { background-color: var(--mindmap-color-habits-pink); border-color: #E4AEC8; }
-    .slide-with-mindmap .mindmap-node[data-color="habits-items-green"] { background-color: var(--mindmap-color-habits-items-green); border-color: #BBDDA0; }
-    .slide-with-mindmap .mindmap-node[data-color="org-light-orange"] { background-color: var(--mindmap-color-org-light-orange); border-color: #E6C7A8; }
-    .slide-with-mindmap .mindmap-node[data-color="org-item-beige"] { background-color: var(--mindmap-color-org-item-beige); border-color: #E8D8CA; }
-    .slide-with-mindmap .mindmap-node[data-color="learn-light-orange"] { background-color: var(--mindmap-color-learn-light-orange); border-color: #E6C7A8; }
-    .slide-with-mindmap .mindmap-node[data-color="learn-items-lavender"] { background-color: var(--mindmap-color-learn-items-lavender); border-color: #CFC0E8; }
-    .slide-with-mindmap .mindmap-node[data-color="goals-beige"] { background-color: var(--mindmap-color-goals-beige); border-color: #E8D8CA; }
-    .slide-with-mindmap .mindmap-node[data-color="goals-items-purple"] { background-color: var(--mindmap-color-goals-items-purple); border-color: #C2A9E3; }
-    .slide-with-mindmap .mindmap-node[data-color="motiv-light-blue"] { background-color: var(--mindmap-color-motiv-light-blue); border-color: #A3C5E3; }
-    .slide-with-mindmap .mindmap-node[data-color="motiv-items-peach"] { background-color: var(--mindmap-color-motiv-items-peach); border-color: #EAAFA0; }
-    .slide-with-mindmap .mindmap-node[data-color="review-green"] { background-color: var(--mindmap-color-review-green); border-color: #8ABBE6; }
-    .slide-with-mindmap .mindmap-node[data-color="review-items-red"] { background-color: var(--mindmap-color-review-items-red); border-color: #E89898; }
-
-    /* Conectores do Mapa Mental */
-    .slide-with-mindmap .central-topic::after { /* Conector para baixo do tópico central */
-      content: '';
-      position: absolute;
-      left: 50%;
-      bottom: -15px; /* Distância do conector */
-      height: 15px;
-      width: 2px;
-      background-color: #b0b0b0; /* Cor do conector */
-      transform: translateX(-50%);
-      z-index: 0; /* Atrás dos nós */
-    }
-    .slide-with-mindmap .mindmap-branch::before { /* Conector para cima, ligando ao central ou a outro ramo */
-      content: '';
-      position: absolute;
-      left: 50%;
-      top: -10px; /* Distância acima do nó do ramo */
-      height: 10px;
-      width: 2px;
-      background-color: #b0b0b0;
-      transform: translateX(-50%);
-      z-index: 0;
-    }
-     /* Conector para baixo de um nó pai para seus filhos */
-    .slide-with-mindmap .mindmap-branch > .mindmap-node:not(.central-topic)::after {
-      content: '';
-      display: block;
-      position: absolute;
-      left: 50%;
-      bottom: -10px; /* Distância abaixo do nó pai */
-      height: 10px;
-      width: 2px;
-      background-color: #c0c0c0; /* Cor um pouco mais clara para conectores de sub-nível */
-      transform: translateX(-50%);
-      z-index: 0;
-    }
-    /* Esconder conector para baixo se não houver filhos visíveis (usa :has para modernidade) */
-    .slide-with-mindmap .mindmap-branch:not(:has(ul:not([style*="display: none"]))) > .mindmap-node:not(.central-topic)::after {
-      display: none;
-    }
-    /* Esconder o conector superior do primeiro nível de ramos se o tópico central for o único "pai" visual */
-    .slide-with-mindmap .mindmap > .mindmap-branch::before {
-        /* Ajuste para que a linha venha do central topic para o branch */
-        top: -15px; /* Deve alinhar com o ::after do central-topic */
-        height: 15px;
-    }
-
-
-    @media (max-width: 768px) {
-      .slide-with-mindmap .mindmap-wrapper { max-height: 60vh; padding:15px; }
-      .slide-with-mindmap .central-topic { margin-bottom: 20px; font-size: clamp(1em, 2.2vw, 1.4em); }
-      .slide-with-mindmap .mindmap { flex-direction: column; align-items: center; gap: 25px; } /* Empilhar ramos */
-      .slide-with-mindmap .mindmap-branch { width: 90%; }
-      .slide-with-mindmap .central-topic::after { bottom: -12px; height: 12px; }
-      .slide-with-mindmap .mindmap-branch::before { top: -10px; height: 10px; }
-      .slide-with-mindmap .mindmap-branch > .mindmap-node:not(.central-topic)::after { bottom: -8px; height: 8px;}
-    }
-    @media (max-width: 480px) {
-      .slide-with-mindmap .mindmap-wrapper { max-height: 55vh; font-size:0.85em; padding:10px; }
-      .slide-with-mindmap .mindmap-node { padding: 8px 10px; font-size: clamp(0.75em, 1.8vw, 0.9em); }
-      .slide-with-mindmap .central-topic { padding: 12px 18px; font-size: clamp(0.9em, 2vw, 1.2em); }
-      .slide-with-mindmap .toggle-children { width:20px; height:20px; line-height:20px; font-size:12px; }
-    }
-
-    /* NOVAS ESTRUTURAS CSS (do segundo código do usuário) */
-    .quote-content {
-      font-size: clamp(1.5em, 4vw, 2.5em);
-      border-left: 5px solid var(--color-accent);
-      padding-left: 2rem;
-      margin: 2rem auto;
-      max-width: 60ch;
-      text-align: left;
-    }
-    .quote-content p {
-        color: var(--color-text-primary); /* Tornar a citação mais proeminente */
-        margin-bottom: 0.5em;
-    }
-    .quote-content cite {
-      display: block;
-      font-style: normal;
-      font-size: 0.7em;
-      color: var(--color-text-secondary);
-      margin-top: 1em;
-      text-align: right;
-    }
-
-    .team-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 2rem;
-      width: 100%;
-      max-width: 900px;
-      margin-top: 2rem;
-    }
-    .team-member {
-      text-align: center;
-      background: var(--placeholder-bg);
-      padding: 1.5rem;
-      border-radius: 8px;
-    }
-    .team-member img {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 1rem;
-      background-color: #ccc; /* Placeholder for avatar */
-      border: 3px solid var(--bg-slide);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .team-member h3 {
-      font-family: var(--font-primary);
-      font-size: 1.2em;
-      color: var(--color-text-primary);
-      margin-bottom: 0.3em;
-    }
-    .team-member p {
-      font-size: 0.9em;
-      color: var(--color-text-secondary);
-      margin-bottom: 0;
-    }
-
-    .process-steps {
-      list-style: none;
-      margin-top: 2rem;
-      max-width: 700px;
-      width: 100%;
-      padding-left: 0;
-      counter-reset: process-counter;
-    }
-    .process-steps li {
-      padding: 1.5rem;
-      padding-left: 2.5rem; /* Espaço para o número */
-      margin-bottom: 1.5rem;
-      background: rgba(0,0,0,0.02);
-      border-left: 4px solid var(--color-accent);
-      position: relative;
-      text-align: left;
-      border-radius: 0 8px 8px 0;
-      counter-increment: process-counter;
-    }
-     .process-steps li::before {
-      content: counter(process-counter);
-      position: absolute;
-      left: -18px; /* Ajustar para alinhar com a borda */
-      top: 50%;
-      transform: translateY(-50%);
-      background-color: var(--color-accent);
-      color: white;
-      width: 36px; /* Aumentado para melhor visual */
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-primary);
-      font-weight: bold;
-      font-size: 1em; /* Tamanho do número */
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .process-steps li strong {
-      font-family: var(--font-primary);
-      font-weight: 500;
-      color: var(--color-text-primary);
-      display: block;
-      margin-bottom: 0.5em;
-      font-size: 1.1em;
-    }
-     .process-steps li p {
-      font-size: clamp(0.9em, 2vw, 1em);
-      margin-bottom: 0;
-      color: var(--color-text-secondary);
-    }
-
-    .comparison-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-      width: 100%;
-      max-width: 900px;
-      margin-top: 2rem;
-      text-align: left;
-    }
-    .comparison-column {
-      flex: 1;
-      min-width: 280px;
-      background: var(--placeholder-bg);
-      padding: 1.5rem;
-      border-radius: 8px;
-      border: 1px solid var(--placeholder-border);
-    }
-    .comparison-column h3 { /* Título da coluna */
-      font-size: 1.5em;
-      margin-bottom: 1em;
-      text-align: center;
-      font-family: var(--font-primary);
-      border-bottom: 2px solid var(--placeholder-border);
-      padding-bottom: 0.5em;
-      color: var(--color-text-primary);
-    }
-    .comparison-column ul {
-      list-style-position: inside;
-      padding-left: 0; /* Remover padding padrão se ::before for usado para marcadores */
-      list-style-type: none; /* Remover marcadores padrão */
-    }
-    .comparison-column ul li {
-      margin-bottom: 0.75em;
-      color: var(--color-text-secondary);
-      position: relative;
-      padding-left: 1.8em; /* Espaço para o ícone customizado */
-    }
-     .comparison-column ul li::before {
-        content: "✓"; /* Checkmark para prós */
-        color: #28a745; /* Verde */
-        font-weight: bold;
-        position: absolute;
-        left: 0;
-        top: 0;
-        font-size: 1.2em;
-    }
-    .comparison-column.cons ul li::before { /* Marcador para contras */
-        content: "✕";
-        color: #dc3545; /* Vermelho */
-    }
-
-    .code-block {
-      background-color: var(--code-bg);
-      color: var(--code-text);
-      padding: 1.5rem;
-      border-radius: 8px;
-      overflow-x: auto;
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-      font-size: clamp(0.8em, 1.8vw, 0.9em);
-      text-align: left;
-      max-width: 800px;
-      width: 100%;
-      margin-top: 1.5rem;
-      border: 1px solid #444;
-      line-height: 1.5;
-    }
-    .code-block code {
-      white-space: pre; /* Mantém a formatação do código */
-      display: block; /* Garante que o code ocupe o espaço do pre */
-    }
-    /* Estilos para listas em slides como Agenda, Referências, Agradecimentos */
-    .list-slide ul, .list-slide ol {
-        max-width: 700px;
-        margin-top: 1.5rem;
-    }
-    .list-slide li {
-        padding: 0.3em 0;
-    }
-    .list-slide li strong {
-        font-family: var(--font-primary);
-        color: var(--color-text-primary);
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Seletor de Acordes • Web Audio</title>
+<style>
+/* ===================== THEME TOKENS (NEON - DEFAULT) ===================== */
+:root {
+    --bg:#0b1220; --bg-2:#0a1020; --panel:#0f1a2f; --panel-2:#0e182b;
+    --ink:#e8f0ff; --muted:#a7b4d6; --accent:#6af0c2; --accent-2:#43d3ff; --accent-3:#ff79c6;
+    --amber:#ffd166; --danger:#ff6b6b; --ok:#2ce1a8; --shadow:0 18px 50px rgba(0,0,0,.45);
+    --focus:#43d3ff; --tag-bg:rgba(255,255,255,.06); --tag-brd:rgba(255,255,255,.14);
+    --range-track:#1b2b4a; --range-fill:linear-gradient(135deg,var(--accent),var(--accent-2));
+    --thumb:#eaf7ff; --thumb-brd:#9aeaff; --glass:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+    --glass-strong:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+    --card-brd:linear-gradient(140deg,rgba(106,240,194,.55),rgba(67,211,255,.35),rgba(255,121,198,.35));
+    --ring-outer:rgba(100,220,255,.08); --ring-inner:rgba(100,220,255,.25); --outline:2px solid var(--focus);
+    --elev-b:rgba(255,255,255,.10); --elev-c:rgba(255,255,255,.04)
+}
+/* ===================== THEME: PASTEL ===================== */
+html[data-theme="pastel"]{
+    --bg:#101016; --bg-2:#12121a; --panel:#171a24; --panel-2:#141925; --ink:#f6f7fb; --muted:#c6cbe0;
+    --accent:#b6ffe8; --accent-2:#ffd1f5; --accent-3:#ffe08a; --amber:#ffe08a; --danger:#ff8a8a; --ok:#9ff5d2;
+    --range-track:#263250; --thumb:#fff; --thumb-brd:#ffdff7;
+    --glass:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+    --glass-strong:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));
+    --card-brd:linear-gradient(140deg,rgba(182,255,232,.55),rgba(255,209,245,.35),rgba(255,224,138,.35));
+    --ring-outer:rgba(255,224,138,.08); --ring-inner:rgba(255,224,138,.25); --elev-b:rgba(255,255,255,.12); --elev-c:rgba(255,255,255,.06)
+}
+/* ===================== THEME: LUZ (LIGHT) ===================== */
+html[data-theme="light"]{
+    --bg:#f6f8fb; --bg-2:#eef3f9; --panel:#fff; --panel-2:#fbfdff; --ink:#0f172a; --muted:#5b6b86;
+    --accent:#27bfa1; --accent-2:#3aa8ff; --accent-3:#ff4fb4; --amber:#ffb43b; --danger:#ea5455; --ok:#1bbf90;
+    --shadow:0 14px 40px rgba(16,24,40,.10); --focus:#2563eb; --tag-bg:rgba(15,23,42,.06); --tag-brd:rgba(15,23,42,.12);
+    --range-track:#d7e3f3; --range-fill:linear-gradient(135deg,var(--accent),var(--accent-2));
+    --thumb:#fff; --thumb-brd:#c6e4ff; --glass:linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.80));
+    --glass-strong:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.86));
+    --card-brd:linear-gradient(140deg,rgba(39,191,161,.25),rgba(58,168,255,.20),rgba(255,79,180,.20));
+    --ring-outer:rgba(37,99,235,.08); --ring-inner:rgba(37,99,235,.25); --outline:2px solid var(--focus);
+    --elev-b:rgba(15,23,42,.08); --elev-c:rgba(15,23,42,.03)
+}
+/* ===================== RESET / BASE ===================== */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+    margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    color:var(--ink);
+    background:radial-gradient(1100px 600px at 15% -10%,var(--bg-2) 0%,var(--bg) 58%,var(--bg) 100%), linear-gradient(180deg,var(--bg) 0,var(--bg-2) 100%);
+    position:relative; overflow-x:hidden;
+}
+body::before{
+    content:""; position:fixed; inset:0;
+    background:linear-gradient(to right,var(--elev-c) 1px,transparent 1px),linear-gradient(to bottom,var(--elev-c) 1px,transparent 1px);
+    background-size:40px 40px; mask-image:radial-gradient(900px 600px at 30% 0%,rgba(0,0,0,.6),transparent 70%); pointer-events:none;
+}
+.ring{position:fixed; border-radius:50%; filter:blur(44px); opacity:.22; pointer-events:none; z-index:0}
+.r1{width:420px;height:420px;background:radial-gradient(circle,var(--accent) 0,transparent 60%); top:-80px; left:-60px}
+.r2{width:460px;height:460px;background:radial-gradient(circle,var(--accent-3) 0,transparent 60%); bottom:-120px; right:-80px}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px; box-shadow:0 0 0 1px var(--ring-inner),0 0 0 10px var(--ring-outer); border-radius:10px}
+.wrap{max-width:1180px; margin:28px auto 56px; padding:0 18px; position:relative; z-index:1}
+.hidden{display:none !important}
+/* ===================== HEADER ===================== */
+header{
+    position:sticky; top:12px; z-index:5; display:flex; gap:16px; align-items:center; justify-content:space-between;
+    margin-bottom:18px; padding:12px 14px; background:var(--glass); border:1px solid var(--elev-b); border-radius:16px; box-shadow:var(--shadow);
+    backdrop-filter:blur(10px) saturate(120%);
+}
+.title{display:flex; align-items:center; gap:12px}
+.dot{width:12px;height:12px;border-radius:50%;background:conic-gradient(from 210deg,var(--accent),var(--accent-2),var(--accent)); box-shadow:0 0 18px var(--accent)}
+h1{font-size:20px;margin:0;letter-spacing:.3px}
+.sub{font-size:12px;color:var(--muted)}
+.badge,.themeSel{
+    display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid var(--elev-b);
+    background:linear-gradient(180deg,var(--panel-2),var(--panel)); color:var(--ink); font-size:12px;
+}
+.themeSel select, .engineSel select, .sfInstSel select{
+    appearance:none; border:1px solid var(--elev-b); background:var(--panel-2); color:var(--ink);
+    padding:6px 10px; border-radius:999px; font-weight:600; box-shadow:inset 0 0 0 1px var(--elev-c);
+}
+/* ===================== GRID / CARDS ===================== */
+.grid{display:grid; grid-template-columns:1.25fr 1fr; gap:16px}
+.card{background:var(--glass-strong); border:1px solid var(--elev-b); border-radius:18px; box-shadow:var(--shadow); position:relative; overflow:hidden}
+.card::before{content:""; position:absolute; inset:0; border-radius:18px; padding:1px; pointer-events:none; background:var(--card-brd);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude}
+.card h2{font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.16em; margin:0 0 12px; font-weight:800}
+.card .body{padding:16px 16px 12px}
+/* ===================== FORM / CONTROLES ===================== */
+.row{display:flex; gap:12px; flex-wrap:wrap; align-items:end; margin-bottom:12px}
+label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px}
+select,input[type="number"],input[type="text"]{
+    width:100%; padding:11px 12px; border-radius:12px; border:1px solid var(--elev-b);
+    background:linear-gradient(180deg,var(--panel),var(--panel-2)); color:var(--ink); outline:none; box-shadow:inset 0 0 0 1px var(--elev-c)
+}
+select option{background:var(--panel-2); color:var(--ink)}
+.field{flex:1; min-width:180px}
+.field-full{flex-basis:100%}
+.checkline{display:flex; flex-wrap:wrap; gap:10px}
+.tag{font-family:inherit; font-size:100%; padding:8px 12px; border-radius:999px; border:1px solid var(--tag-brd);
+  background:var(--tag-bg); color:var(--ink); cursor:pointer; transition:all .2s ease}
+.tag:hover{filter:brightness(1.15)}
+button.tag[aria-pressed="true"]{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#06121a; border-color:transparent; box-shadow:0 4px 14px rgba(67,211,255,.25)
+}
+.actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+button{
+    border:1px solid var(--elev-b); color:var(--ink); background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    padding:12px 14px; border-radius:14px; cursor:pointer; transition:.18s ease transform,.18s ease filter, box-shadow .18s;
+    font-weight:800; letter-spacing:.2px; box-shadow:inset 0 -2px 0 rgba(255,255,255,.06),0 8px 18px rgba(0,0,0,.35)
+}
+html[data-theme="light"] button{box-shadow:inset 0 -2px 0 rgba(0,0,0,.06),0 8px 18px rgba(16,24,40,.12)}
+button:hover{filter:brightness(1.08)} button:active{transform:translateY(1px)}
+.play{background:linear-gradient(135deg,var(--accent),var(--accent-2)); border:none; color:#06121a; box-shadow:0 8px 20px rgba(67,211,255,.22), inset 0 -2px 0 rgba(0,0,0,.12)}
+.stop{background:linear-gradient(135deg,var(--danger),#ff9a9e); border:none; color:#1a0505}
+.loop-on{background:linear-gradient(135deg,var(--amber),#ff8fab); color:#1b0b07; border:none}
+.pill{padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid var(--elev-b); font-size:12px}
+html[data-theme="light"] .pill{background:rgba(15,23,42,.04)}
+/* ===================== DISPLAY ===================== */
+.display{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 16px; border-top:1px dashed var(--elev-b);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel)); border-radius:0 0 18px 18px}
+.symbol{font-size:22px; font-weight:900; letter-spacing:.4px}
+.notes{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; font-size:13px; color:var(--muted)}
+/* ===================== SLIDERS ===================== */
+.slider{display:grid; grid-template-columns:minmax(100px,140px) 1fr 64px; gap:12px; align-items:center; margin:10px 0}
+.slider input[type="range"]{width:100%; appearance:none; height:14px; background:transparent}
+.slider input[type="range"]::-webkit-slider-runnable-track, .slider input[type="range"]::-moz-range-track{
+    height:6px; border-radius:999px; background:var(--range-track); box-shadow:inset 0 0 0 1px var(--elev-c)
+}
+.slider .fill{grid-column:2/3; height:6px; border-radius:999px; background:var(--range-fill); pointer-events:none;
+  transform-origin:left center; transform:scaleX(.6); position:relative; top:-10px; filter:drop-shadow(0 2px 8px rgba(67,211,255,.35))}
+html[data-theme="light"] .slider .fill{filter:none}
+.slider .bubble{justify-self:end; transform:translateY(-2px); padding:4px 8px; font-size:12px; border-radius:10px;
+  background:rgba(255,255,255,.08); border:1px solid var(--elev-b); color:var(--muted)}
+html[data-theme="light"] .slider .bubble{background:rgba(15,23,42,.04)}
+.slider input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%; background:var(--thumb);
+    border:2px solid var(--thumb-brd); margin-top:-6px; box-shadow:0 2px 8px rgba(0,0,0,.45)
+}
+.slider input[type="range"]::-moz-range-thumb{
+    width:18px; height:18px; border-radius:50%; background:var(--thumb); border:2px solid var(--thumb-brd); box-shadow:0 2px 8px rgba(0,0,0,.45)
+}
+/* ===================== DOCK (mobile) ===================== */
+.dock{display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:14px; z-index:6;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel)); border:1px solid var(--elev-b); border-radius:16px; padding:8px; gap:8px;
+  box-shadow:var(--shadow); backdrop-filter:blur(10px)}
+.dock button{padding:10px 12px}
+@media (max-width:920px){.grid{grid-template-columns:1fr} .dock{display:flex}}
+.footer{margin-top:14px; font-size:12px; color:var(--muted)}
+.kbd{font-family:ui-monospace, monospace; background:rgba(255,255,255,.06); border:1px solid var(--elev-b); padding:2px 6px; border-radius:6px}
+html[data-theme="light"] .kbd{background:rgba(15,23,42,.05)}
+/* ===================== MODAL ===================== */
+.modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(5px); display:flex; align-items:center; justify-content:center; z-index:1000}
+.modal-content{background:var(--panel); border:1px solid var(--elev-b); border-radius:18px; padding:24px; width:90%; max-width:800px; box-shadow:var(--shadow); position:relative}
+.modal-close-btn{position:absolute; top:10px; right:10px; background:transparent; border:none; font-size:24px; color:var(--muted); cursor:pointer; padding:4px 8px}
+.modal-controls{display:flex; align-items:center; gap:12px; margin:12px 0 24px}
+.modal-controls label{margin-bottom:0}
+.modal-controls select{width:auto; flex-grow:1}
+.tables-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px}
+.field-table h3{font-size:14px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); margin:0 0 12px; border-bottom:1px solid var(--elev-c); padding-bottom:8px}
+.degree-chord-pair{display:flex; justify-content:space-between; padding:6px 4px; font-size:15px; border-radius:6px}
+.degree-chord-pair:nth-child(even){background:rgba(255,255,255,0.03)}
+.degree{font-family:ui-monospace, monospace; color:var(--muted)}
+.chord{font-weight:600}
+</style>
 </head>
 <body>
-  <div class="presentation-container"
-       role="region"
-       aria-label="Apresentação de Slides"
-       tabindex="0">
-
-    <div class="slide-counter" id="slideCounter" aria-live="polite"></div>
-
-    <section class="slide" id="slide1" role="group" aria-label="Slide 1: Título" aria-hidden="false">
-      <h1>[Título Principal da Apresentação]</h1>
-      <h2>[Subtítulo ou Tema Central]</h2>
-      <p class="lead placeholder-text">
-        Este é um texto introdutório genérico. Substitua este conteúdo pela sua introdução, agradecimentos ou qualquer informação inicial relevante.
-      </p>
-      <p class="navigation-hint">
-        Use as setas do teclado (← →) para navegar.
-      </p>
-    </section>
-
-    <section class="slide" id="slide2" role="group" aria-label="Slide 2: Agenda/Sumário" aria-hidden="true">
-      <h1>Agenda</h1>
-      <h2>Tópicos da Apresentação</h2>
-      <ol class="list-slide text-left max-w-responsive">
-        <li>Introdução ao Tema</li>
-        <li>Contextualização e Problema</li>
-        <li>Metodologia Aplicada (se aplicável)</li>
-        <li>Resultados Principais</li>
-        <li>Análise e Discussão</li>
-        <li>Conclusões e Próximos Passos</li>
-      </ol>
-      <p class="placeholder-text mt-2">Este slide serve como um guia para a audiência.</p>
-    </section>
-
-    <section class="slide" id="slide3" role="group" aria-label="Slide 3: Imagem Horizontal" aria-hidden="true">
-      <h1>[Título do Slide de Imagem]</h1>
-      <p>[Texto explicativo sobre o tópico. Lorem ipsum dolor sit amet, consectetur adipiscing elit.]</p>
-      <div class="content-area">
-        <div class="placeholder-content placeholder-image-horizontal">
-          <strong>Espaço para Imagem Horizontal</strong>
-          <p class="small-info">(ex: 1200x675px)</p>
-          <p class="placeholder-text">Insira sua imagem aqui.</p>
-        </div>
+<div class="ring r1"></div>
+<div class="ring r2"></div>
+<div class="wrap">
+  <header>
+    <div class="title">
+      <span class="dot"></span>
+      <div>
+        <h1>Seletor e Reprodutor de Acordes</h1>
+        <div class="sub">Web Audio • sintetizador + SoundFont opcional • tema claro/escuro</div>
       </div>
-    </section>
-
-    <section class="slide" id="slide4" role="group" aria-label="Slide 4: Imagem Vertical" aria-hidden="true">
-      <h1>[Título com Imagem Vertical]</h1>
-      <div class="content-area centered-items">
-        <div class="text-content">
-          <p>[Detalhes sobre o conteúdo. Ut enim ad minim veniam, quis nostrud exercitation ullamco.]</p>
-          <p class="placeholder-text">
-            Este bloco de texto pode ser expandido.
-          </p>
-        </div>
-        <div class="placeholder-content placeholder-image-vertical">
-          <strong>Imagem Vertical</strong>
-          <p class="small-info">(ex: 400x600px)</p>
-          <p class="placeholder-text">Adicione uma imagem relevante.</p>
-        </div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+      <div class="badge" title="Status de áudio">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 9v6h4l5 4V5L8 9H4z" stroke="currentColor" stroke-width="1.6" />
+          <path d="M16 7a5 5 0 010 10" stroke="currentColor" stroke-width="1.6" opacity=".7" />
+        </svg>
+        <span id="audioStatus">desativado</span>
       </div>
-    </section>
 
-    <section class="slide" id="slide5" role="group" aria-label="Slide 5: Composição Visual" aria-hidden="true">
-      <h1>[Composição Visual]</h1>
-      <h2>[Destaque com Múltiplas Mídias]</h2>
-      <div class="content-area centered-items">
-        <div class="placeholder-content placeholder-image-vertical mt-2" style="max-width:250px;min-height:280px;">
-          <strong>Imagem Vertical A</strong>
-          <p class="placeholder-text">Menor, para detalhes.</p>
-        </div>
-        <div class="placeholder-content placeholder-image-horizontal mt-2" style="max-width:450px;min-height:280px;">
-          <strong>Imagem Horizontal B</strong>
-          <p class="placeholder-text">Maior, para impacto.</p>
-        </div>
+      <div class="engineSel themeSel" title="Banco de som">
+        <label for="engineSelect" class="hidden">Banco de Som</label>
+        <span>Banco de Som</span>
+        <select id="engineSelect" aria-label="Selecionar banco de som">
+          <option value="synth" selected>Sintetizador (interno)</option>
+          <option value="sf">SoundFont (amostrado)</option>
+        </select>
       </div>
-      <p class="placeholder-text mt-3">
-        Utilize este layout para exibir diferentes mídias lado a lado.
-      </p>
-    </section>
+      <div class="sfInstSel themeSel hidden" id="sfControls" title="Instrumento SoundFont">
+        <label for="sfInstrument" class="hidden">Instrumento</label>
+        <span>Instrumento</span>
+        <select id="sfInstrument">
+          <option value="acoustic_grand_piano" selected>Piano</option>
+          <option value="electric_piano_1">Rhodes</option>
+          <option value="acoustic_guitar_steel">Guitarra (steel)</option>
+          <option value="string_ensemble_1">Strings</option>
+        </select>
+      </div>
 
-    <section class="slide" id="slide6" role="group" aria-label="Slide 6: Citação Inspiradora" aria-hidden="true">
-        <h1>Citação</h1>
-        <blockquote class="quote-content">
-          <p>"A imaginação é mais importante que o conhecimento. O conhecimento é limitado, enquanto a imaginação abraça o mundo inteiro, estimulando o progresso, dando à luz a evolução."</p>
-          <cite>Albert Einstein</cite>
-        </blockquote>
-        <p class="placeholder-text mt-2">Use este slide para destacar uma citação relevante.</p>
-    </section>
+      <button id="btnCampoHarmonico" class="pill">Campo Harmônico</button>
 
-    <section class="slide slide-with-mindmap" id="slide7" role="group" aria-label="Slide 7: Mapa Mental Interativo" aria-hidden="true">
-      <h1>Mapa Mental</h1>
-      <h2>Visualizando Conceitos Chave</h2>
-      <div class="mindmap-slide-container">
-        <div class="mindmap-wrapper">
-          <div class="mindmap-container">
-            <div class="mindmap-node central-topic">MIND MAPPING</div>
-            <ul class="mindmap">
-              <li class="mindmap-branch">
-                <div class="mindmap-node" data-color="habits-pink">Habits</div>
-                <button class="toggle-children" aria-expanded="false" aria-label="Expandir/Recolher Habits">+</button>
-                <ul>
-                  <li><div class="mindmap-node sub-node" data-color="habits-items-green">Plan</div></li>
-                  <li><div class="mindmap-node sub-node" data-color="habits-items-green">Study</div></li>
-                  <li><div class="mindmap-node sub-node" data-color="habits-items-green">System</div></li>
-                </ul>
-              </li>
-              <li class="mindmap-branch">
-                <div class="mindmap-node" data-color="org-light-orange">Organization</div>
-                <button class="toggle-children" aria-expanded="false" aria-label="Expandir/Recolher Organization">+</button>
-                <ul>
-                  <li><div class="mindmap-node sub-node" data-color="org-item-beige">Breaks</div></li>
-                </ul>
-              </li>
-              <li class="mindmap-branch">
-                <div class="mindmap-node" data-color="learn-light-orange">Learning Style</div>
-                <button class="toggle-children" aria-expanded="false" aria-label="Expandir/Recolher Learning Style">+</button>
-                <ul>
-                  <li><div class="mindmap-node sub-node" data-color="learn-items-lavender">Read</div></li>
-                  <li><div class="mindmap-node sub-node" data-color="learn-items-lavender">Listen</div></li>
-                  <li><div class="mindmap-node sub-node" data-color="learn-items-lavender">Summarize</div></li>
-                </ul>
-              </li>
-              <li class="mindmap-branch">
-                <div class="mindmap-node" data-color="goals-beige">Goals</div>
-                <button class="toggle-children" aria-expanded="false" aria-label="Expandir/Recolher Goals">+</button>
-                <ul>
-                  <li><div class="mindmap-node sub-node" data-color="goals-items-purple">Research</div></li>
-                  <li><div class="mindmap-node sub-node" data-color="goals-items-purple">Lecture</div></li>
-                  <li><div class="mindmap-node sub-node" data-color="goals-items-purple">Conclusions</div></li>
-                </ul>
-              </li>
-              <li class="mindmap-branch">
-                <div class="mindmap-node" data-color="motiv-light-blue">Motivation</div>
-                <button class="toggle-children" aria-expanded="false" aria-label="Expandir/Recolher Motivation">+</button>
-                <ul>
-                  <li><div class="mindmap-node sub-node" data-color="motiv-items-peach">Tips</div></li>
-                  <li><div class="mindmap-node sub-node" data-color="motiv-items-peach">Roadmap</div></li>
-                </ul>
-              </li>
-              <li class="mindmap-branch">
-                <div class="mindmap-node" data-color="review-green">Review</div>
-                <button class="toggle-children" aria-expanded="false" aria-label="Expandir/Recolher Review">+</button>
-                <ul>
-                  <li><div class="mindmap-node sub-node" data-color="review-items-red">Notes</div></li>
-                  <li><div class="mindmap-node sub-node" data-color="review-items-red">Method</div></li>
-                  <li><div class="mindmap-node sub-node" data-color="review-items-red">Discuss</div></li>
-                </ul>
-              </li>
-            </ul>
+      <div class="themeSel" title="Tema visual">
+        <label for="themeSelect" class="hidden">Tema</label>
+        <span>Tema</span>
+        <select id="themeSelect" aria-label="Selecionar tema">
+          <option value="neon">Neon</option>
+          <option value="pastel">Pastel</option>
+          <option value="light">Luz</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="h2constr">
+      <div class="body">
+        <h2 id="h2constr">Construção</h2>
+        <div class="row">
+          <div class="field">
+            <label for="root">Fundamental (Tônica)</label>
+            <select id="root">
+              <option value="0">C / Dó</option><option value="1">C# / Db</option><option value="2">D / Ré</option>
+              <option value="3">D# / Eb</option><option value="4">E / Mi</option><option value="5">F / Fá</option>
+              <option value="6">F# / Gb</option><option value="7">G / Sol</option><option value="8">G# / Ab</option>
+              <option value="9">A / Lá</option><option value="10">A# / Bb</option><option value="11">B / Si</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="quality">Qualidade</label>
+            <select id="quality">
+              <option value="major">Maior</option><option value="minor">Menor</option><option value="aug">Aumentado (+)</option>
+              <option value="dim">Diminuto (°)</option><option value="sus2">Sus2</option><option value="sus4">Sus4</option>
+              <option value="power">Power (5)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="inversion">Inversão</label>
+            <select id="inversion">
+              <option value="0">Fundamental</option><option value="1">1ª inversão</option>
+              <option value="2">2ª inversão</option><option value="3">3ª inversão (se 7ª)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field field-full">
+            <label>Extensões</label>
+            <div class="checkline">
+              <button class="tag" type="button" id="add6" aria-pressed="false">6</button>
+              <button class="tag" type="button" id="add7" aria-pressed="false">7 (dominante)</button>
+              <button class="tag" type="button" id="addMaj7" aria-pressed="false">Maj7 / 7M</button>
+              <button class="tag" type="button" id="add9" aria-pressed="false">9</button>
+              <button class="tag" type="button" id="add11" aria-pressed="false">11</button>
+              <button class="tag" type="button" id="add13" aria-pressed="false">13</button>
+              <button class="tag" type="button" id="add9only" aria-pressed="false">add9</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field field-full">
+            <label>Alterações & opções</label>
+            <div class="checkline">
+              <button class="tag" type="button" id="omit3" aria-pressed="false">Omitir 3ª</button>
+              <button class="tag" type="button" id="omit5" aria-pressed="false">Omitir 5ª</button>
+              <button class="tag" type="button" id="b5" aria-pressed="false">♭5</button>
+              <button class="tag" type="button" id="sharp5" aria-pressed="false">♯5</button>
+              <button class="tag" type="button" id="b9" aria-pressed="false">♭9</button>
+              <button class="tag" type="button" id="sharp9" aria-pressed="false">♯9</button>
+              <button class="tag" type="button" id="b13" aria-pressed="false">♭13</button>
+              <button class="tag" type="button" id="doubleBass" aria-pressed="false">Baixo + oitava abaixo</button>
+            </div>
           </div>
         </div>
       </div>
-      <p class="placeholder-text mt-2">
-        Clique nos botões (+) para expandir ou (−) para recolher os ramos.
-      </p>
-    </section>
-
-    <section class="slide" id="slide8" role="group" aria-label="Slide 8: Vídeo" aria-hidden="true">
-      <h1>[Incorporação de Vídeo]</h1>
-      <h2>[Conteúdo Multimídia]</h2>
-      <div class="video-container-placeholder">
-        <strong>Espaço para Vídeo</strong>
-        <p class="small-info mt-2">
-          Para incorporar: abra o vídeo no Drive &gt; Mais ações (⋮) &gt; Abrir em nova janela &gt; Mais ações (⋮) &gt; Incorporar item... Copie o código <code>&lt;iframe&gt;</code>.
-        </p>
-        <p class="placeholder-text mt-2">O vídeo ocupará esta área.</p>
-      </div>
-      <p class="placeholder-text mt-3">
-        Este slide exibe conteúdo via <code>&lt;iframe&gt;</code>.
-      </p>
-    </section>
-
-    <section class="slide" id="slide9" role="group" aria-label="Slide 9: Galeria de Fotos" aria-hidden="true">
-      <h1>[Galeria de Fotos com Modal]</h1>
-      <h2>[Clique para ampliar]</h2>
-      <div class="smart-gallery">
-        <div class="gallery-item" role="button" tabindex="0" data-full-image-src="https://picsum.photos/id/1015/1200/800" aria-label="Ampliar Imagem 1: Lago com montanhas">
-            <img src="https://picsum.photos/id/1015/200/200" alt="Miniatura Lago com montanhas">
-        </div>
-        <div class="gallery-item" role="button" tabindex="0" data-full-image-src="https://picsum.photos/id/1016/1200/900" aria-label="Ampliar Imagem 2: Veículo antigo">
-            <img src="https://picsum.photos/id/1016/200/200" alt="Miniatura Veículo antigo">
-        </div>
-        <div class="gallery-item" role="button" tabindex="0" data-full-image-src="https://picsum.photos/id/1018/1000/1200" aria-label="Ampliar Imagem 3: Menina na praia (vertical)">
-            <img src="https://picsum.photos/id/1018/200/200" alt="Miniatura Menina na praia">
-        </div>
-        <div class="gallery-item" role="button" tabindex="0" data-full-image-src="https://picsum.photos/id/1025/1600/1000" aria-label="Ampliar Imagem 4: Cão Pug">
-            <img src="https://picsum.photos/id/1025/200/200" alt="Miniatura Cão Pug">
-        </div>
-        <div class="gallery-item" role="button" tabindex="0" data-full-image-src="https://picsum.photos/id/10/1200/800" aria-label="Ampliar Imagem 5: Névoa na floresta">
-            <img src="https://picsum.photos/id/10/200/200" alt="Miniatura Névoa na floresta">
-        </div>
-      </div>
-      <p class="placeholder-text mt-3">
-        Clique em uma miniatura para ver a imagem ampliada.
-      </p>
-    </section>
-
-    <section class="slide" id="slide10" role="group" aria-label="Slide 10: Dados e Análises" aria-hidden="true">
-      <h1>[Análise de Dados]</h1>
-      <h2>[Métricas e Comparações]</h2>
-      <div class="content-area">
-        <div class="placeholder-content chart-placeholder-content">
-          <strong>Espaço para Gráfico</strong>
-          <p class="small-info">Use biblioteca JS ou imagem.</p>
-          <p class="placeholder-text mt-2">Visualizações facilitam insights.</p>
-        </div>
-        <div class="placeholder-content table-placeholder-content">
-          <strong>Espaço para Tabela</strong>
-          <table>
-            <thead>
-              <tr>
-                <th>Indicador</th>
-                <th>Valor</th>
-                <th>Tendência</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>Métrica X</td><td>1,234</td><td>Positiva</td></tr>
-              <tr><td>Métrica Y</td><td>56.7%</td><td>Estável</td></tr>
-              <tr><td>Métrica Z</td><td>890</td><td>Negativa</td></tr>
-            </tbody>
-          </table>
-          <p class="placeholder-text mt-2">Tabelas trazem clareza a dados complexos.</p>
-        </div>
+      <div class="display">
+        <div class="symbol" id="symbol" aria-live="polite">C / Dó</div>
+        <div class="notes" id="notes" aria-live="polite">Notas: C4 E4 G4</div>
       </div>
     </section>
 
-    <section class="slide" id="slide11" role="group" aria-label="Slide 11: Processo" aria-hidden="true">
-        <h1>Nosso Processo</h1>
-        <h2>Etapas Fundamentais</h2>
-        <ol class="process-steps">
-          <li><strong>Planejamento:</strong> Definição de escopo, objetivos e cronograma. Análise de requisitos e identificação de stakeholders.</li>
-          <li><strong>Design:</strong> Criação de wireframes, protótipos e design visual. Foco na experiência do usuário e usabilidade.</li>
-          <li><strong>Desenvolvimento:</strong> Implementação das funcionalidades, codificação e testes unitários. Integração de sistemas.</li>
-          <li><strong>Testes e Qualidade:</strong> Testes funcionais, de performance e segurança. Garantia da qualidade do produto final.</li>
-          <li><strong>Implantação e Feedback:</strong> Lançamento do projeto e coleta de feedback para melhorias contínuas.</li>
-        </ol>
-        <p class="placeholder-text mt-2">Descreva as etapas de um processo ou linha do tempo.</p>
-    </section>
+    <section class="card" aria-labelledby="h2exec">
+      <div class="body">
+        <h2 id="h2exec">Execução</h2>
 
-    <section class="slide" id="slide12" role="group" aria-label="Slide 12: Comparação" aria-hidden="true">
-        <h1>Análise Comparativa</h1>
-        <h2>[Opção A] vs [Opção B]</h2>
-        <div class="comparison-container">
-          <div class="comparison-column">
-            <h3>Opção A</h3>
-            <ul>
-              <li>Vantagem chave 1 da Opção A</li>
-              <li>Outro benefício importante</li>
-              <li>Característica destacada</li>
-            </ul>
+        <div class="row">
+          <div class="field">
+            <label for="style">Articulação</label>
+            <select id="style">
+              <option value="block">Bloco</option><option value="arpUp">Arpejo ↑</option><option value="arpDown">Arpejo ↓</option>
+              <option value="strumUp">Violão ↑ (sim.)</option><option value="strumDown">Violão ↓ (sim.)</option>
+            </select>
           </div>
-          <div class="comparison-column cons"> <h3>Opção B</h3>
-            <ul>
-              <li>Vantagem chave 1 da Opção B</li>
-              <li>Outra consideração importante</li>
-              <li>Ponto que necessita atenção</li>
-            </ul>
+          <div class="field">
+            <label for="voicing">Vozes</label>
+            <select id="voicing">
+              <option value="closed">Fechada</option><option value="open">Aberta (espalhada)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="octave">Oitava base</label>
+            <select id="octave">
+              <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
+            </select>
           </div>
         </div>
-        <p class="placeholder-text mt-3">Use para comparar características, prós/contras, etc.</p>
-    </section>
 
-    <section class="slide" id="slide13" role="group" aria-label="Slide 13: Equipe" aria-hidden="true">
-        <h1>Nossa Equipe</h1>
-        <h2>Conheça os Responsáveis</h2>
-        <div class="team-grid">
-          <div class="team-member">
-            <img src="https://i.pravatar.cc/150?img=1" alt="Foto de Ana Silva">
-            <h3>Ana Silva</h3>
-            <p>Líder de Projeto</p>
+        <div class="row">
+          <div class="field">
+            <label for="tone">Timbre (sintetizador)</label>
+            <select id="tone">
+              <option value="neutral" selected>Neutro</option>
+              <option value="soft">Suave (LP mais baixo)</option>
+              <option value="bright">Brilhante (LP mais alto)</option>
+            </select>
           </div>
-          <div class="team-member">
-            <img src="https://i.pravatar.cc/150?img=2" alt="Foto de Carlos Souza">
-            <h3>Carlos Souza</h3>
-            <p>Desenvolvedor Frontend</p>
+          <div class="field">
+            <label for="human">Humanização (ms máx.)</label>
+            <input id="human" type="number" min="0" max="30" step="1" value="6" />
           </div>
-          <div class="team-member">
-            <img src="https://i.pravatar.cc/150?img=3" alt="Foto de Beatriz Lima">
-            <h3>Beatriz Lima</h3>
-            <p>UX/UI Designer</p>
+          <div class="field">
+            <label for="a4">Afinação base (A4)</label>
+            <input id="a4" type="number" value="440" min="420" max="460" step="1" />
           </div>
         </div>
-        <p class="placeholder-text mt-3">Apresente os membros chave da sua equipe ou projeto.</p>
-    </section>
 
-    <section class="slide" id="slide14" role="group" aria-label="Slide 14: Bloco de Código" aria-hidden="true">
-        <h1>Exemplo de Código</h1>
-        <h2>[Linguagem ou Finalidade do Código]</h2>
-        <pre class="code-block"><code>function greet(name) {
-  // Retorna uma saudação personalizada.
-  if (name) {
-    return \`Olá, \${name}! Bem-vindo(a).\`;
-  } else {
-    return "Olá! Bem-vindo(a).";
+        <div class="slider"><label for="dur" class="muted">Duração (ms)</label><div class="fill" id="fillDur" aria-hidden="true"></div>
+          <input id="dur" type="range" min="200" max="4000" step="50" value="1500" /><span id="durVal" class="bubble">1500</span></div>
+        <div class="slider"><label for="gap" class="muted">Arpejo/Strum (ms)</label><div class="fill" id="fillGap" aria-hidden="true"></div>
+          <input id="gap" type="range" min="5" max="180" step="5" value="75" /><span id="gapVal" class="bubble">75</span></div>
+        <div class="slider"><label for="adsrA" class="muted">Ataque (ms)</label><div class="fill" id="fillA" aria-hidden="true"></div>
+          <input id="adsrA" type="range" min="2" max="200" step="2" value="12" /><span class="bubble" id="adsrAVal">12</span></div>
+        <div class="slider"><label for="adsrR" class="muted">Liberação (ms)</label><div class="fill" id="fillR" aria-hidden="true"></div>
+          <input id="adsrR" type="range" min="60" max="1500" step="10" value="420" /><span class="bubble" id="adsrRVal">420</span></div>
+        <div class="slider"><label for="volume" class="muted">Volume</label><div class="fill" id="fillVol" aria-hidden="true"></div>
+          <input id="volume" type="range" min="0" max="1" step="0.01" value="0.6" /><span id="volVal" class="bubble">0.60</span></div>
+
+        <div class="row">
+          <div class="field">
+            <label for="ambience">Efeito Ambiente</label>
+            <select id="ambience">
+              <option value="off">Desligado</option><option value="room">Sala leve</option><option value="hall">Hall suave</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ambMix">Mix de Ambiente</label>
+            <input id="ambMix" type="range" min="0" max="1" step="0.01" value="0.6" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="play" id="btnPlay" aria-label="Ouvir acorde">▶ Ouvir acorde</button>
+          <button class="stop" id="btnStop" aria-label="Parar">■ Parar</button>
+          <button id="btnLoop" class="pill" aria-pressed="false">Loop: <span id="loopState">off</span></button>
+          <button id="btnRec" class="pill">Gravar</button>
+          <a id="downloadLink" class="pill hidden" download="acorde.webm">Baixar gravação</a>
+        </div>
+
+        <p class="footer">Atalhos: <span class="kbd">Espaço</span> tocar/parar • <span class="kbd">Alt</span> + <span class="kbd">→/←</span> qualidade • <span class="kbd">Alt</span> + <span class="kbd">↑/↓</span> tônica</p>
+        <p class="footer hidden" id="engineNotice"></p>
+      </div>
+    </section>
+  </div>
+
+  <div class="dock actions" aria-hidden="true">
+    <button class="play" id="dockPlay">▶</button>
+    <button class="stop" id="dockStop">■</button>
+    <button id="dockLoop" class="pill">Loop</button>
+  </div>
+</div>
+
+<div id="modalCampoHarmonico" class="modal-overlay hidden">
+  <div class="modal-content">
+    <button id="modalClose" class="modal-close-btn" aria-label="Fechar">&times;</button>
+    <h2>Tabelas de Campo Harmônico</h2>
+    <div class="modal-controls">
+      <label for="tonicSelect">Tonalidade:</label>
+      <select id="tonicSelect"></select>
+    </div>
+    <div id="harmonicFieldTables" class="tables-grid"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+/* ===================== Teoria Musical ===================== */
+const NOTE_NAMES_SHARP=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const NOTE_NAMES_FLAT =["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+const USA_TO_BR_NOTES={'C':'Dó','D':'Ré','E':'Mi','F':'Fá','G':'Sol','A':'Lá','B':'Si'};
+
+const QUALITIES={
+  major:{label:"Maior",intervals:[0,4,7]},
+  minor:{label:"Menor",intervals:[0,3,7]},
+  aug:{label:"Aumentado",intervals:[0,4,8]},
+  dim:{label:"Diminuto",intervals:[0,3,6]},
+  sus2:{label:"Sus2",intervals:[0,2,7]},
+  sus4:{label:"Sus4",intervals:[0,5,7]},
+  power:{label:"Power",intervals:[0,7]},
+};
+
+function convertToBrNote(n){ if(!n) return ''; const b=n.charAt(0),acc=n.substring(1); return (USA_TO_BR_NOTES[b]||b)+acc; }
+
+function buildChordIntervals(quality,opts){
+  let ints=[...QUALITIES[quality].intervals];
+  if(quality==='sus2'||quality==='sus4'){opts.omit3=true;}
+  if(opts.omit3){ints=ints.filter(s=>s!==3&&s!==4);}
+  if(opts.omit5){ints=ints.filter(s=>s!==6&&s!==7&&s!==8);}
+  if(opts.b5){ if(ints.includes(7)) ints[ints.indexOf(7)]=6; if(ints.includes(8)) ints[ints.indexOf(8)]=7; }
+  if(opts.sharp5){ if(ints.includes(7)) ints[ints.indexOf(7)]=8; if(ints.includes(6)) ints[ints.indexOf(6)]=7; }
+  if(opts.add6) ints.push(9);
+  if(opts.add7&&opts.addMaj7){opts.add7=false;}
+  if(opts.add7) ints.push(10);
+  if(opts.addMaj7) ints.push(11);
+  if(opts.add9only) ints.push(14);
+  if(opts.add9) ints.push(14);
+  if(opts.add11) ints.push(17);
+  if(opts.add13) ints.push(21);
+  if(opts.b9){ if(ints.includes(14)) ints[ints.indexOf(14)]=13; else ints.push(13); }
+  if(opts.sharp9){ if(ints.includes(14)) ints[ints.indexOf(14)]=15; else ints.push(15); }
+  if(opts.b13){ if(ints.includes(21)) ints[ints.indexOf(21)]=20; else ints.push(20); }
+  return Array.from(new Set(ints.sort((a,b)=>a-b)));
+}
+
+function intervalsToMidi(rootSemi,ints,octaveBase,inversion,voicing,doubleBass){
+  const baseC=12*(octaveBase+1), rootMidi=baseC+rootSemi;
+  let midi=ints.map(semi=>rootMidi+semi);
+  if(voicing==='open'){ midi=midi.map((m,i)=> i%2===1 ? m+12:m); }
+  const invSteps=Math.min(inversion,midi.length-1);
+  for(let i=0;i<invSteps;i++){ midi[i]+=12; }
+  midi.sort((a,b)=>a-b);
+  if(doubleBass){ midi.unshift(midi[0]-12); }
+  // Clamping de notas: restringe as notas a uma faixa audível/agradável (C2 a C7),
+  // evitando oitavas extremas que podem ocorrer com inversões ou vozes abertas.
+  midi=midi.map(m=>{ while(m<36) m+=12; while(m>96) m-=12; return m; });
+  return Array.from(new Set(midi));
+}
+
+function midiToFreq(m,a4=440){ return a4*Math.pow(2,(m-69)/12); }
+function midiToName(m,useFlats=false){ const pc=((m%12)+12)%12; const names=useFlats?NOTE_NAMES_FLAT:NOTE_NAMES_SHARP; const oct=Math.floor(m/12)-1; return names[pc]+oct; }
+function midiToNameSharpOnly(m){ const pc=((m%12)+12)%12; return NOTE_NAMES_SHARP[pc]+(Math.floor(m/12)-1); }
+
+/* ===================== Áudio (Web Audio API) ===================== */
+let AC=null, master=null, ambienceBus=null, ambienceChain=null, ambienceSend=null;
+let playingNodes=[]; let loop=false, loopTimer=null; let mediaRecorder=null, recordedChunks=[];
+
+function ensureAudio(){
+  if(!AC){
+    AC=new (window.AudioContext||window.webkitAudioContext)();
+    master=AC.createGain(); master.gain.value=parseFloat(volume.value); master.connect(AC.destination);
+    ambienceBus=AC.createGain(); ambienceBus.gain.value=0.0; ambienceBus.connect(master);
+    ambienceSend=AC.createGain(); ambienceSend.gain.value=0.0;
+    const delay=AC.createDelay(1.5), fb=AC.createGain(), lp=AC.createBiquadFilter();
+    delay.connect(fb); fb.connect(lp); lp.connect(delay); delay.connect(ambienceBus); ambienceSend.connect(delay);
+    ambienceChain={delay,fb,lp}; updateAmbienceParams();
+    audioStatus.textContent='ativo';
+  }
+  // Garante que o áudio seja reativado após a interação do usuário (política de autoplay dos navegadores)
+  if (AC.state === 'suspended') {
+    AC.resume();
   }
 }
 
-console.log(greet("Usuário"));</code></pre>
-        <p class="placeholder-text mt-2">Ideal para demonstrar trechos de código relevantes.</p>
-    </section>
+function clearPlaying(){
+  playingNodes.forEach(n=>{try{n.stop(AC.currentTime)}catch(e){}});
+  playingNodes=[];
+  if(loopTimer){clearTimeout(loopTimer); loopTimer=null;}
+}
 
-    <section class="slide" id="slide15" role="group" aria-label="Slide 15: Perguntas Frequentes" aria-hidden="true">
-      <h1>Perguntas Frequentes</h1>
-      <div class="faq-container">
-        <div class="faq-item">
-          <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-s15-1">
-            Como funciona a navegação entre os slides?
-            <span class="faq-icon" aria-hidden="true"></span>
-          </button>
-          <div class="faq-answer" id="faq-answer-s15-1" role="region">
-            <p>
-              Você pode navegar utilizando as teclas de seta Esquerda (←) e Direita (→) do seu teclado.
-            </p>
-          </div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-s15-2">
-            Posso adicionar vídeos de outras plataformas além do Google Drive?
-            <span class="faq-icon" aria-hidden="true"></span>
-          </button>
-          <div class="faq-answer" id="faq-answer-s15-2" role="region">
-            <p>
-              Sim! O placeholder de vídeo é para um <code>&lt;iframe&gt;</code>. Você pode incorporar vídeos do YouTube, Vimeo, ou qualquer serviço que forneça um código de incorporação iframe.
-            </p>
-          </div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-s15-3">
-            Como a galeria inteligente de fotos se ajusta?
-            <span class="faq-icon" aria-hidden="true"></span>
-          </button>
-          <div class="faq-answer" id="faq-answer-s15-3" role="region">
-            <p>
-              A galeria utiliza CSS Grid com <code>repeat(auto-fill, minmax(130px, 1fr))</code>, o que significa que ela tentará preencher o espaço com o máximo de colunas de pelo menos 130px de largura, ajustando-se automaticamente ao tamanho da tela e ao número de itens.
-            </p>
-          </div>
-        </div>
-      </div>
-      <p class="placeholder-text mt-3">Clique nas perguntas para ver as respostas.</p>
-    </section>
+function updateAmbienceParams(){
+  if(!AC||!ambienceChain) return;
+  const kind=ambience.value; const mix=parseFloat(document.getElementById('ambMix').value||'0.6');
+  let send=0,dtime=0.2,fb=0.0,lp=3000,bus=0;
+  if(kind==='room'){ send=.12; dtime=.18; fb=.28; lp=3500; bus=mix; }
+  else if(kind==='hall'){ send=.18; dtime=.33; fb=.42; lp=2800; bus=mix; }
+  ambienceSend.gain.setTargetAtTime(send,AC.currentTime,.01);
+  ambienceChain.delay.delayTime.setTargetAtTime(dtime,AC.currentTime,.01);
+  ambienceChain.fb.gain.setTargetAtTime(fb,AC.currentTime,.01);
+  ambienceChain.lp.type='lowpass'; ambienceChain.lp.frequency.setTargetAtTime(lp,AC.currentTime,.01);
+  ambienceBus.gain.setTargetAtTime(bus,AC.currentTime,.01);
+}
 
-    <section class="slide" id="slide16" role="group" aria-label="Slide 16: Referências" aria-hidden="true">
-        <h1>Referências</h1>
-        <h2>Fontes Consultadas</h2>
-        <ul class="list-slide text-left max-w-responsive">
-            <li><strong>Autor A. A.</strong> (Ano). <em>Título do Trabalho ou Artigo</em>. Nome da Publicação/Conferência. DOI ou URL.</li>
-            <li><strong>Smith, J., & Doe, M.</strong> (2023). <em>A Comprehensive Study on Web Presentations</em>. Journal of Modern Web Technologies, 15(2), 45-67. https://doi.org/fake.doi.123</li>
-            <li><strong>WebsiteName.com</strong>. (Data de Acesso). <em>Título da Página Específica</em>. Recuperado de https://www.examplereference.com/page</li>
-            <li>[Adicione mais referências conforme necessário]</li>
-        </ul>
-        <p class="placeholder-text mt-2">Liste as fontes bibliográficas e referências importantes.</p>
-    </section>
+/* ===================== Sintetizador interno ===================== */
+function createToneFilters(tone){
+  const hp=AC.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=60;
+  const lp=AC.createBiquadFilter(); lp.type='lowpass';
+  lp.frequency.value= tone==='soft'?5200 : tone==='bright'?11000 : 7600;
+  return {hp,lp};
+}
 
-    <section class="slide" id="slide17" role="group" aria-label="Slide 17: Agradecimentos" aria-hidden="true">
-        <h1>Agradecimentos</h1>
-        <h2>Reconhecimentos</h2>
-        <div class="text-left max-w-responsive">
-            <p class="mt-1">Gostaríamos de agradecer a todos que contribuíram para este projeto/estudo:</p>
-            <ul class="list-slide">
-                <li>À <strong>Instituição X</strong> pelo apoio financeiro e infraestrutura.</li>
-                <li>Aos <strong>colaboradores Y e Z</strong> por suas valiosas contribuições e insights.</li>
-                <li>Aos <strong>participantes da pesquisa</strong> (se aplicável) pela sua dedicação.</li>
-                <li>A você, pela sua atenção!</li>
-            </ul>
-        </div>
-        <p class="placeholder-text mt-3">Um espaço para agradecer a indivíduos ou instituições.</p>
-    </section>
+function scheduleSynthNote(freq,when,durMs,attackMs,releaseMs,tone,amp=1){
+  const o1=AC.createOscillator(), o2=AC.createOscillator(), g=AC.createGain();
+  o1.type='sine'; o2.type='triangle'; o1.frequency.value=freq; o2.frequency.value=freq*1.003;
+  const lfo=AC.createOscillator(), lfoGain=AC.createGain(); lfo.frequency.value=5.2; lfoGain.gain.value=.6; lfo.connect(lfoGain); lfoGain.connect(o1.frequency);
+  const lfo2=AC.createOscillator(), lfo2Gain=AC.createGain(); lfo2.frequency.value=5.5; lfo2Gain.gain.value=.5; lfo2.connect(lfo2Gain); lfo2Gain.connect(o2.frequency);
+  const {hp,lp}=createToneFilters(tone);
+  const A=attackMs/1000, R=releaseMs/1000, D=durMs/1000;
+  g.gain.setValueAtTime(0,when); g.gain.linearRampToValueAtTime(amp,when+A); g.gain.setTargetAtTime(.85*amp,when+A,.25); g.gain.setTargetAtTime(0.0,when+D,R);
+  o1.connect(g); o2.connect(g); g.connect(hp); hp.connect(lp); lp.connect(master); lp.connect(ambienceSend);
+  o1.start(when); o2.start(when); lfo.start(when); lfo2.start(when);
+  const stopAt=when+D+R+0.05;
+  o1.stop(stopAt); o2.stop(stopAt); lfo.stop(stopAt); lfo2.stop(stopAt);
+  playingNodes.push({ stop:()=>{try{o1.stop();o2.stop();lfo.stop();lfo2.stop();}catch(e){}} });
+}
 
-    <section class="slide" id="slide18" role="group" aria-label="Slide 18: Conclusão e Contato" aria-hidden="true">
-      <h1>[Conclusão e Próximos Passos]</h1>
-      <h2>[Resumo dos Pontos Chave e Chamada para Ação Específica]</h2>
-      <p class="lead placeholder-text">
-        Recapitule os pontos-chave da apresentação. Por exemplo: "Demonstramos como a tecnologia X pode otimizar Y." Em seguida, direcione para uma ação específica: "Para saber mais e testar nossa demo, visite nosso site."
-      </p>
-      <div class="mt-3" style="font-size:1.1em;">
-        <p><strong>Contato:</strong> seuemail@exemplo.com.br</p>
-        <p><strong>Website:</strong> www.seusiteincrivel.com</p>
-        <p><strong>LinkedIn:</strong> linkedin.com/in/seu_perfil</p>
-      </div>
-      <p class="text-accent mt-3">Obrigado pela atenção!</p>
-    </section>
+function humanize(ms,j){ if(!j||j<=0) return ms; const r=(Math.random()*2-1)*j; return ms+r; }
 
-  </div>
+/* ===================== 🔊 SoundFont (amostrado) ===================== */
+let sfLibLoaded=false, sfInstrument=null, sfRequestedName='acoustic_grand_piano';
 
-  <div id="imageModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-content" role="document">
-      <h2 id="modalTitle" class="visually-hidden">Imagem Ampliada</h2>
-      <button class="close-modal-button" aria-label="Fechar modal">&times;</button>
-      <img src="" alt="Imagem ampliada da galeria" class="modal-image" id="modalImageContent">
-    </div>
-  </div>
+async function ensureSoundfontLib(){
+  if (sfLibLoaded) return;
+  const tryLoad = (src) => new Promise((resolve, reject) => {
+    const s = document.createElement('script'); s.src = src; s.async = true;
+    s.onload = () => resolve(); s.onerror = () => reject(new Error('Falha ao carregar: ' + src));
+    document.head.appendChild(s);
+  });
+  try {
+    await tryLoad('https://unpkg.com/soundfont-player@0.15.7/dist/soundfont-player.js');
+  } catch (_) {
+    await tryLoad('https://cdn.jsdelivr.net/npm/soundfont-player@0.15.7/dist/soundfont-player.js');
+  }
+  if (!window.Soundfont) throw new Error('Biblioteca SoundFont indisponível.');
+  sfLibLoaded = true;
+}
 
-  <script>
-    (function(){
-      const presentationContainer = document.querySelector('.presentation-container');
-      const slides = document.querySelectorAll('.slide');
-      const counter = document.getElementById('slideCounter');
-      let current = 0;
-      let total = slides.length;
+async function loadSfInstrument(name){
+  ensureAudio();
+  await ensureSoundfontLib();
+  engineNotice.classList.remove('hidden');
+  engineNotice.textContent = 'Carregando SoundFont: ' + name + ' …';
+  const BASE = 'https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM';
+  // FIX: Removido o cache buster `?ts=${Date.now()}` para permitir que o navegador armazene o arquivo em cache.
+  const nameToUrl = (i) => `${BASE}/${encodeURIComponent(i)}-mp3.js`;
+  try {
+    sfInstrument = await window.Soundfont.instrument(AC, name, { format: 'mp3', soundfont: 'FluidR3_GM', nameToUrl, destination: master });
+    await new Promise(res => setTimeout(res, 50));
+    engineNotice.textContent = 'SoundFont ativo (' + name + ').';
+    setTimeout(() => { engineNotice.classList.add('hidden'); }, 900);
+  } catch (err) {
+    sfInstrument = null;
+    engineNotice.textContent = 'Falha ao carregar "'+name+'". Voltando ao sintetizador.';
+    engineSelect.value = 'synth';
+    sfControls.classList.add('hidden');
+    setTimeout(() => { engineNotice.classList.add('hidden'); }, 2000);
+    throw err;
+  }
+}
 
-      const imageModal = document.getElementById('imageModal');
-      const modalImageContent = document.getElementById('modalImageContent');
-      const closeModalButton = imageModal.querySelector('.close-modal-button');
+function scheduleSfNote(midiNote, when, durMs, attackMs, releaseMs, amp) {
+  const name = midiToNameSharpOnly(midiNote);
+  const player = sfInstrument.play(name, when, {
+    gain: amp, duration: (durMs + releaseMs) / 1000,
+    attack: attackMs / 1000, release: releaseMs / 1000
+  });
+  playingNodes.push({ stop: ()=>{ try{player.stop();}catch(e){} } });
+}
 
-      const init = () => {
-        slides.forEach((s,i) => {
-          s.classList.remove('active','exit-left','exit-right','prepare-next','prepare-prev');
-          s.setAttribute('aria-hidden', String(i !== 0));
-          if (i === 0) {
-            s.classList.add('active');
-          } else {
-            s.classList.add('prepare-next');
-          }
-        });
-        updateCounter();
-        setupFaq();
-        setupGalleryModal();
-        setupMindMapInteractivity(); // Adicionado chamada
-        if(presentationContainer) presentationContainer.focus();
-      };
+/* ===================== Dispatcher de Reprodução (Refatorado) ===================== */
+async function playCurrentChord(){
+  const midiNotes = updateDisplay();
+  ensureAudio();
+  clearPlaying();
 
-      const updateCounter = () => {
-        if (counter) {
-          counter.textContent = `Slide ${current + 1} / ${total}`;
-        }
-      };
+  const useSoundFont = engineSelect.value === 'sf';
+  if (useSoundFont && (!sfInstrument || sfInstrument.name !== sfRequestedName)) {
+    try {
+      await loadSfInstrument(sfRequestedName);
+    } catch {
+      // Falha ao carregar SF, toca com o synth como fallback.
+      // O aviso ao usuário já é tratado em `loadSfInstrument`.
+      return playCurrentChord();
+    }
+  }
 
-      const goTo = index => {
-        if (index < 0 || index >= total || index === current) {
-          if (index === current && presentationContainer) presentationContainer.focus();
-          return;
-        }
+  // Obter todos os parâmetros da UI uma única vez
+  const params = {
+    dur: parseInt(durEl.value, 10), gap: parseInt(gapEl.value, 10),
+    A: parseInt(adsrA.value, 10), R: parseInt(adsrR.value, 10),
+    style: styleEl.value, tone: toneEl.value,
+    jitter: parseInt(humanEl.value || '0', 10),
+    a4: parseFloat(a4El.value)
+  };
 
-        const oldSlide = slides[current];
-        const newSlide = slides[index];
-        const movingForward = index > current;
+  const notes = [...midiNotes].sort((a,b) => a-b);
+  const amp = 1 / Math.sqrt(Math.max(1, notes.length));
+  const now = AC.currentTime + 0.02;
+  const isStrum = params.style.startsWith('strum');
+  const localA = isStrum ? Math.min(params.A, 16) : params.A;
 
-        oldSlide.classList.remove('active');
-        oldSlide.classList.add(movingForward ? 'exit-left' : 'exit-right');
-        oldSlide.setAttribute('aria-hidden', 'true');
+  const order = (params.style === 'arpDown' || params.style === 'strumDown') ? [...notes].reverse() : notes;
+  const baseGap = isStrum ? Math.max(params.gap, 18) : params.gap;
 
-        newSlide.classList.remove('active', 'exit-left', 'exit-right', 'prepare-next', 'prepare-prev');
+  order.forEach((midi, i) => {
+    let delayMs = 0;
+    if (params.style !== 'block') {
+      delayMs = humanize(i * baseGap, params.jitter);
+    }
+    const scheduleTime = now + (delayMs / 1000);
 
-        if (movingForward) {
-            newSlide.classList.add('prepare-next');
-        } else {
-            newSlide.classList.add('prepare-prev');
-        }
-        void newSlide.offsetWidth;
+    if (useSoundFont) {
+      scheduleSfNote(midi, scheduleTime, params.dur, localA, params.R, amp);
+    } else {
+      const freq = midiToFreq(midi, params.a4);
+      scheduleSynthNote(freq, scheduleTime, params.dur, localA, params.R, params.tone, amp);
+    }
+  });
 
-        if (movingForward) {
-            newSlide.classList.remove('prepare-next');
-        } else {
-            newSlide.classList.remove('prepare-prev');
-        }
-        newSlide.classList.add('active');
-        newSlide.setAttribute('aria-hidden', 'false');
+  if(loop){
+    const totalGap = (notes.length - 1) * baseGap;
+    const delayMs = Math.max(150, params.dur + totalGap + 50);
+    loopTimer = setTimeout(playCurrentChord, delayMs);
+  }
+}
 
-        current = index;
-        updateCounter();
-        if (presentationContainer) presentationContainer.focus();
+/* ===================== UI / Interação ===================== */
+// Mapeamento de elementos do DOM
+const dom = {};
+const ids = [
+  'root', 'quality', 'inversion', 'voicing', 'octave', 'style', 'tone', 'human', 'dur', 'gap',
+  'adsrA', 'adsrR', 'a4', 'ambience', 'ambMix', 'volume', 'symbol', 'notes',
+  'btnPlay', 'btnStop', 'btnLoop', 'loopState', 'btnRec', 'downloadLink', 'themeSelect',
+  'durVal', 'gapVal', 'adsrAVal', 'adsrRVal', 'volVal',
+  'fillDur', 'fillGap', 'fillA', 'fillR', 'fillVol',
+  'audioStatus', 'engineSelect', 'sfControls', 'sfInstrument', 'engineNotice',
+  'dockPlay', 'dockStop', 'dockLoop',
+  'modalCampoHarmonico', 'btnCampoHarmonico', 'modalClose', 'tonicSelect', 'harmonicFieldTables'
+];
+ids.forEach(id => dom[id] = document.getElementById(id));
+// Renomear para conveniência
+const { rootEl, quality, inversion, voicing, octave, styleEl, toneEl, humanEl, durEl, gapEl,
+        adsrA, adsrR, a4El, ambience, ambMix, volume, symbol, notesOut, btnPlay, btnStop, btnLoop,
+        loopState, themeSelect, btnRec, downloadLink, durVal, gapVal, adsrAVal, adsrRVal, volVal,
+        fillDur, fillGap, fillA, fillR, fillVol, audioStatus, engineSelect, sfControls,
+        sfInstrumentSel, engineNotice, dockPlay, dockStop, dockLoop, modal, btnOpenModal,
+        btnCloseModal, tonicSelect, tablesContainer
+      } = { ...dom, rootEl: dom.root, quality: dom.quality, inversion: dom.inversion,
+            voicing: dom.voicing, octave: dom.octave, styleEl: dom.style, toneEl: dom.tone,
+            humanEl: dom.human, durEl: dom.dur, gapEl: dom.gap, a4El: dom.a4, notesOut: dom.notes,
+            sfInstrumentSel: dom.sfInstrument, modal: dom.modalCampoHarmonico,
+            btnOpenModal: dom.btnCampoHarmonico, btnCloseModal: dom.modalClose, tablesContainer: dom.harmonicFieldTables };
+
+
+function updateFills(){
+  const pct=(v,min,max)=>(v-min)/(max-min);
+  fillDur.style.transform=`scaleX(${pct(+durEl.value,200,4000)})`;
+  fillGap.style.transform=`scaleX(${pct(+gapEl.value,5,180)})`;
+  fillA.style.transform=`scaleX(${pct(+adsrA.value,2,200)})`;
+  fillR.style.transform=`scaleX(${pct(+adsrR.value,60,1500)})`;
+  fillVol.style.transform=`scaleX(${pct(+volume.value,0,1)})`;
+}
+function syncLabels(){
+  durVal.textContent=durEl.value; gapVal.textContent=gapEl.value;
+  adsrAVal.textContent=adsrA.value; adsrRVal.textContent=adsrR.value;
+  volVal.textContent=parseFloat(volume.value).toFixed(2);
+  if(master) master.gain.setTargetAtTime(parseFloat(volume.value), AC.currentTime, 0.01);
+  updateFills();
+}
+[durEl,gapEl,adsrA,adsrR,volume].forEach(el=>el.addEventListener('input', syncLabels));
+
+function getOpts(){
+  const g=id=>document.getElementById(id).getAttribute('aria-pressed')==='true';
+  return {
+    add6:g('add6'), add7:g('add7'), addMaj7:g('addMaj7'), add9:g('add9'), add11:g('add11'), add13:g('add13'), add9only:g('add9only'),
+    omit3:g('omit3'), omit5:g('omit5'), b5:g('b5'), sharp5:g('sharp5'), b9:g('b9'), sharp9:g('sharp9'), b13:g('b13'), doubleBass:g('doubleBass')
+  };
+}
+
+function qualityConstraints(){
+  const omit3Btn=document.getElementById('omit3');
+  if(quality.value==='sus2'||quality.value==='sus4'){ omit3Btn.setAttribute('aria-pressed','true'); omit3Btn.disabled=true; }
+  else{ omit3Btn.disabled=false; }
+  const opts=getOpts(); const has7=opts.add7||opts.addMaj7;
+  [...inversion.options].forEach(o=>o.disabled=false); inversion.options[3].disabled=!has7; if(!has7 && inversion.value==='3') inversion.value='0';
+}
+
+function updateDisplay(){
+  qualityConstraints();
+  const rootSemi=parseInt(rootEl.value,10), q=quality.value, opts=getOpts();
+  const ints=buildChordIntervals(q,{...opts});
+  const midi=intervalsToMidi(rootSemi, ints, parseInt(octave.value,10), parseInt(inversion.value,10), voicing.value, opts.doubleBass);
+
+  const usaName=NOTE_NAMES_SHARP[rootSemi], brName=convertToBrNote(usaName);
+  let suffix=''; if(q==='minor') suffix='m'; if(q==='aug') suffix='+'; if(q==='dim') suffix='°'; if(q==='sus2') suffix='sus2'; if(q==='sus4') suffix='sus4'; if(q==='power') suffix='5';
+  const ext=[]; if(opts.add6) ext.push('6'); if(opts.addMaj7) ext.push('maj7'); if(opts.add7) ext.push('7'); if(opts.add9) ext.push('9'); if(opts.add11) ext.push('11'); if(opts.add13) ext.push('13');
+  if(opts.add9only) ext.push('add9'); if(opts.b5) ext.push('b5'); if(opts.sharp5) ext.push('#5'); if(opts.b9) ext.push('b9'); if(opts.sharp9) ext.push('#9'); if(opts.b13) ext.push('b13'); if(opts.omit3) ext.push('no3'); if(opts.omit5) ext.push('no5');
+  const usaExtStr=ext.length?`(${ext.join(',')})`:''; let usaChordStr=`${usaName}${suffix}${usaExtStr}`;
+  const brExt=[...ext]; const iM=brExt.indexOf('maj7'); if(iM>-1) brExt[iM]='7M'; const brExtStr=brExt.length?`(${brExt.join(',')})`:''; let brChordStr=`${brName}${suffix}${brExtStr}`;
+  const bassPc=midi[0]%12;
+  if(rootSemi!==bassPc){
+    const useFlats=[1,3,6,8,10].includes(rootSemi);
+    const usaBass=midiToName(midi[0], useFlats).slice(0, -1);
+    const brBass=convertToBrNote(usaBass);
+    usaChordStr+=`/${usaBass}`; brChordStr+=`/${brBass}`;
+  }
+  symbol.textContent=`${usaChordStr}  /  ${brChordStr}`;
+  const useFlatsForNotes=[1,3,6,8,10].includes(rootSemi);
+  const noteNames=midi.map(m=>midiToName(m,useFlatsForNotes));
+  notesOut.textContent='Notas: '+noteNames.join('  ');
+  saveState();
+  return midi;
+}
+
+/* ===================== Persistência ===================== */
+const STORAGE_KEY='chordToolState_v9'; // Versão incrementada
+function saveState(){
+  const state={
+    root:rootEl.value, quality:quality.value, inversion:inversion.value, voicing:voicing.value, octave:octave.value,
+    style:styleEl.value, tone:toneEl.value, human:humanEl.value,
+    options:[...document.querySelectorAll('.checkline button.tag')].map(btn=>({id:btn.id,pressed:btn.getAttribute('aria-pressed')})),
+    dur:durEl.value, gap:gapEl.value, adsrA:adsrA.value, adsrR:adsrR.value, a4:a4El.value, ambience:ambience.value, ambMix:ambMix.value,
+    volume:volume.value, theme:document.documentElement.getAttribute('data-theme')||'neon',
+    engine:engineSelect.value, sfInst:sfInstrumentSel.value
+  };
+  try{localStorage.setItem(STORAGE_KEY, JSON.stringify(state));}catch(e){}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return; const s=JSON.parse(raw);
+    if(s.root) rootEl.value=s.root; if(s.quality) quality.value=s.quality; if(s.inversion) inversion.value=s.inversion;
+    if(s.voicing) voicing.value=s.voicing; if(s.octave) octave.value=s.octave; if(s.style) styleEl.value=s.style; if(s.tone) toneEl.value=s.tone;
+    if(s.human) humanEl.value=s.human;
+    if(s.options&&Array.isArray(s.options)){ s.options.forEach(o=>{ const b=document.getElementById(o.id); if(b) b.setAttribute('aria-pressed', o.pressed); }); }
+    if(s.dur) durEl.value=s.dur; if(s.gap) gapEl.value=s.gap; if(s.adsrA) adsrA.value=s.adsrA; if(s.adsrR) adsrR.value=s.adsrR;
+    if(s.a4) a4El.value=s.a4; if(s.ambience) ambience.value=s.ambience; if(s.ambMix) ambMix.value=s.ambMix; if(s.volume) volume.value=s.volume;
+    if(s.theme){ document.documentElement.setAttribute('data-theme', s.theme); themeSelect.value=s.theme; }
+    if(s.engine){ engineSelect.value=s.engine; sfControls.classList.toggle('hidden', s.engine !== 'sf'); toneEl.disabled = (s.engine==='sf'); }
+    if(s.sfInst){ sfInstrumentSel.value=s.sfInst; sfRequestedName=s.sfInst; }
+    syncLabels(); updateFills();
+  }catch(e){}
+}
+
+/* ===================== Eventos UI ===================== */
+[rootEl, quality, inversion, voicing, octave, styleEl, toneEl, humanEl, a4El, ambience, ambMix]
+.forEach(el=>el.addEventListener('change', ()=>{ ensureAudio(); updateAmbienceParams(); updateDisplay(); }));
+
+document.querySelectorAll('.checkline button.tag').forEach(button=>{
+  button.addEventListener('click', ()=>{ const p=button.getAttribute('aria-pressed')==='true'; button.setAttribute('aria-pressed', String(!p)); updateDisplay(); });
+});
+
+// Ações de Controle de Áudio
+function toggleLoop() {
+  loop=!loop;
+  loopState.textContent=loop?'on':'off';
+  btnLoop.classList.toggle('loop-on', loop);
+  btnLoop.setAttribute('aria-pressed', String(loop));
+  dockLoop.classList.toggle('loop-on', loop);
+  if(loop) { playCurrentChord(); } else { clearPlaying(); }
+}
+btnPlay.addEventListener('click', playCurrentChord);
+btnStop.addEventListener('click', clearPlaying);
+btnLoop.addEventListener('click', toggleLoop);
+dockPlay.addEventListener('click', playCurrentChord);
+dockStop.addEventListener('click', clearPlaying);
+dockLoop.addEventListener('click', toggleLoop);
+
+// Gravação
+btnRec.addEventListener('click', ()=>{
+  ensureAudio();
+  if(!mediaRecorder){
+    const dest=AC.createMediaStreamDestination();
+    master.disconnect(AC.destination); master.connect(dest); master.connect(AC.destination);
+    mediaRecorder=new MediaRecorder(dest.stream, { mimeType: 'audio/webm' });
+    mediaRecorder.ondataavailable=(e)=>{ if(e.data.size>0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop=()=>{
+      const blob=new Blob(recordedChunks,{type: mediaRecorder.mimeType });
+      recordedChunks=[];
+      const url=URL.createObjectURL(blob);
+      downloadLink.href=url;
+      downloadLink.download='acorde_'+new Date().toISOString().replace(/[:.]/g,'-')+'.webm';
+      downloadLink.classList.remove('hidden');
     };
+  }
+  if(mediaRecorder.state!=='recording'){
+    downloadLink.classList.add('hidden'); recordedChunks=[]; mediaRecorder.start(); btnRec.textContent='Gravando...';
+  }else{
+    mediaRecorder.stop(); btnRec.textContent='Gravar';
+  }
+});
 
-    const setupFaq = () => {
-        const faqContainers = document.querySelectorAll('.faq-container');
-        faqContainers.forEach(container => {
-            const faqItems = container.querySelectorAll('.faq-item');
-            faqItems.forEach(item => {
-              const questionButton = item.querySelector('.faq-question');
-              const answerPanel = item.querySelector('.faq-answer');
+// Atalhos
+window.addEventListener('keydown', (e)=>{
+  if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='SELECT' || modal.style.display === 'flex') return;
+  if(e.code==='Space'){ e.preventDefault(); if(playingNodes.length > 0){ clearPlaying(); } else { playCurrentChord(); } }
+  if(e.altKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){ e.preventDefault(); let v=parseInt(rootEl.value,10); rootEl.value=(v+(e.key==='ArrowUp'?1:-1)+12)%12; updateDisplay(); }
+  if(e.altKey&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){ e.preventDefault(); const keys=Object.keys(QUALITIES); const idx=keys.indexOf(quality.value);
+    let nxt=idx+(e.key==='ArrowRight'?1:-1); if(nxt<0) nxt=keys.length-1; if(nxt>=keys.length) nxt=0; quality.value=keys[nxt]; updateDisplay(); }
+});
 
-              if (questionButton && answerPanel) {
-                let answerPanelId = answerPanel.getAttribute('id');
-                if (!answerPanelId) { 
-                    answerPanelId = 'faq-answer-' + Math.random().toString(36).substr(2, 9);
-                    answerPanel.setAttribute('id', answerPanelId);
-                }
-                questionButton.setAttribute('aria-controls', answerPanelId);
+// Tema
+themeSelect.addEventListener('change', ()=>{ document.documentElement.setAttribute('data-theme', themeSelect.value); saveState(); });
 
-                if(questionButton.getAttribute('aria-expanded') !== 'true'){
-                     questionButton.setAttribute('aria-expanded', 'false');
-                }
+// Engine (Synth vs SoundFont)
+async function switchEngine() {
+  const val=engineSelect.value;
+  sfControls.classList.toggle('hidden', val !== 'sf');
+  toneEl.disabled = (val==='sf');
+  saveState();
 
-                questionButton.addEventListener('click', () => {
-                  const isExpanded = questionButton.getAttribute('aria-expanded') === 'true';
-                  questionButton.setAttribute('aria-expanded', String(!isExpanded));
-                });
-              }
-            });
-        });
-      };
+  if (val === 'sf') {
+    if (!sfInstrument || sfInstrument.name !== sfRequestedName) {
+      sfRequestedName = sfInstrumentSel.value || 'acoustic_grand_piano';
+    }
+    try {
+      await loadSfInstrument(sfRequestedName);
+      // micro-preview
+      ensureAudio();
+      sfInstrument.play('A4', AC.currentTime + 0.02, { gain: 0.6, duration: 0.3 });
+    } catch (_) {}
+  }
+}
+engineSelect.addEventListener('change', switchEngine);
+sfInstrumentSel.addEventListener('change', ()=>{
+  sfRequestedName = sfInstrumentSel.value;
+  saveState();
+  switchEngine(); // Recarrega o instrumento
+});
 
-      const setupGalleryModal = () => {
-        const galleries = document.querySelectorAll('.smart-gallery');
-        let previouslyFocusedElement = null;
+// Monitor status de áudio
+function refreshAudioStatus(){ audioStatus.textContent = AC ? (AC.state==='running'?'ativo': 'suspenso') : 'desativado'; }
+document.addEventListener('visibilitychange', refreshAudioStatus);
+setInterval(refreshAudioStatus, 1500);
 
-        const openModal = (imageSrc, altText) => {
-            if (!imageModal || !modalImageContent) return;
-            previouslyFocusedElement = document.activeElement;
-            modalImageContent.src = imageSrc;
-            modalImageContent.alt = altText || "Imagem ampliada da galeria";
-            imageModal.classList.add('active');
-            imageModal.setAttribute('aria-hidden', 'false');
-            if(closeModalButton) closeModalButton.focus();
-        };
+/* ===================== Campo Harmônico (Modal) ===================== */
+const SCALE_INTERVALS={ major:[0,2,4,5,7,9,11], naturalMinor:[0,2,3,5,7,8,10], harmonicMinor:[0,2,3,5,7,8,11], melodicMinor:[0,2,3,5,7,9,11] };
+const HARMONIC_FIELDS={
+  major:{title:'Campo Harmônico Maior', qualities:['','m','m','','','m','°']},
+  naturalMinor:{title:'Campo Harmônico Menor Natural', qualities:['m','°','','m','m','','']},
+  harmonicMinor:{title:'Campo Harmônico Menor Harmônico', qualities:['m','°','+','m','','','°']},
+  melodicMinor:{title:'Campo Harmônico Menor Melódico', qualities:['m','m','+','','','°','°']},
+};
+const DEGREES=['I','II','III','IV','V','VI','VII'];
 
-        const closeModal = () => {
-            if (!imageModal) return;
-            imageModal.classList.remove('active');
-            imageModal.setAttribute('aria-hidden', 'true');
-            if (previouslyFocusedElement) {
-                previouslyFocusedElement.focus();
-            }
-        };
+function generateHarmonicFieldTables(tonicIndex){
+  tablesContainer.innerHTML='';
+  for(const scaleType in HARMONIC_FIELDS){
+    const {title,qualities}=HARMONIC_FIELDS[scaleType]; const intervals=SCALE_INTERVALS[scaleType];
+    let html=`<div class="field-table"><h3>${title}</h3>`;
+    for(let i=0;i<7;i++){
+      const noteIndex=(tonicIndex+intervals[i])%12;
+      const noteName=NOTE_NAMES_SHARP[noteIndex]; const chordQuality=qualities[i];
+      const chordSymbol=`${noteName}${chordQuality}`; const brChordSymbol=`${convertToBrNote(noteName)}${chordQuality}`;
+      html+=`<div class="degree-chord-pair"><span class="degree">${DEGREES[i]}</span><span class="chord">${chordSymbol} / ${brChordSymbol}</span></div>`;
+    }
+    html+='</div>'; tablesContainer.innerHTML += html;
+  }
+}
+NOTE_NAMES_SHARP.forEach((note,idx)=>{ const br=convertToBrNote(note); const opt=new Option(`${note} / ${br}`, idx); tonicSelect.add(opt); });
+btnOpenModal.addEventListener('click', ()=>{ tonicSelect.value=rootEl.value; generateHarmonicFieldTables(parseInt(tonicSelect.value,10)); modal.classList.remove('hidden'); });
+btnCloseModal.addEventListener('click', ()=>{ modal.classList.add('hidden'); });
+modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.classList.add('hidden'); });
+tonicSelect.addEventListener('change', ()=> generateHarmonicFieldTables(parseInt(tonicSelect.value,10)));
+window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !modal.classList.contains('hidden')) modal.classList.add('hidden'); });
 
-        galleries.forEach(gallery => {
-            const galleryItems = gallery.querySelectorAll('.gallery-item');
-            galleryItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const fullImageSrc = item.dataset.fullImageSrc;
-                    const altText = item.querySelector('img')?.alt || "Imagem da galeria";
-                    if (fullImageSrc) {
-                        openModal(fullImageSrc, altText);
-                    }
-                });
-                item.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        const fullImageSrc = item.dataset.fullImageSrc;
-                        const altText = item.querySelector('img')?.alt || "Imagem da galeria";
-                         if (fullImageSrc) {
-                            openModal(fullImageSrc, altText);
-                        }
-                    }
-                });
-            });
-        });
+/* ===================== Inicialização ===================== */
+loadState(); updateDisplay(); updateFills();
 
-        if(closeModalButton) {
-            closeModalButton.addEventListener('click', closeModal);
-        }
-        if(imageModal) {
-            imageModal.addEventListener('click', (event) => {
-                if (event.target === imageModal) { 
-                    closeModal();
-                }
-            });
-        }
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && imageModal && imageModal.classList.contains('active')) {
-                closeModal();
-            }
-        });
-      };
-
-      function setupMindMapInteractivity() {
-        const mindMapSlide = document.querySelector('.slide-with-mindmap');
-        if (!mindMapSlide) return;
-
-        const toggleButtons = mindMapSlide.querySelectorAll('.toggle-children');
-        toggleButtons.forEach(btn => {
-          const branch = btn.closest('.mindmap-branch');
-          const subList = branch ? branch.querySelector('ul') : null;
-
-          if (!subList) return;
-
-          const isInitiallyExpanded = btn.getAttribute('aria-expanded') === 'true';
-          subList.style.display = isInitiallyExpanded ? '' : 'none';
-          btn.textContent = isInitiallyExpanded ? '−' : '+';
-
-          btn.addEventListener('click', e => {
-            e.stopPropagation(); 
-            const isCurrentlyExpanded = subList.style.display !== 'none';
-            subList.style.display = isCurrentlyExpanded ? 'none' : '';
-            btn.setAttribute('aria-expanded', String(!isCurrentlyExpanded));
-            btn.textContent = isCurrentlyExpanded ? '+' : '−';
-          });
-        });
-      }
-
-      document.addEventListener('keydown', e => {
-        if (imageModal && imageModal.classList.contains('active')) {
-            return; 
-        }
-
-        const activeElement = document.activeElement;
-        if (activeElement) {
-            if (activeElement.tagName === 'INPUT' ||
-                activeElement.tagName === 'TEXTAREA' ||
-                activeElement.isContentEditable) {
-                return; 
-            }
-            if ((e.key === 'Enter' || e.key === ' ') &&
-                (activeElement.classList.contains('faq-question') || activeElement.classList.contains('gallery-item') || activeElement.classList.contains('toggle-children'))) {
-                return; 
-            }
-        }
-
-        if (e.key === 'ArrowRight') {
-            goTo(current + 1);
-        } else if (e.key === 'ArrowLeft') {
-            goTo(current - 1);
-        }
-      });
-
-      window.addEventListener('load', init);
-    })();
-  </script>
+});
+</script>
 </body>
 </html>

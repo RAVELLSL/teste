@@ -182,7 +182,7 @@ html[data-theme="light"] .kbd{background:rgba(15,23,42,.05)}
 .exec-grid{ display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start }
 .exec-col{ display:flex; flex-direction:column; gap:16px }
 .exec-col .row { gap: 16px; }
-@media (max-width:1024px){ .exec-grid{grid-template-columns:1fr} }
+@media (max-width:1024px){ .exec-grid, .bottom-grid {grid-template-columns:1fr} }
 
 .action-toolbar {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 12px;
@@ -263,11 +263,11 @@ html[data-theme="light"] .dock button[aria-pressed="true"] { color: var(--panel)
 .lyrics-card .body {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100%; /* Faz o body preencher a altura do card */
 }
 #lyricsEditor {
     width: 100%;
-    flex-grow: 1; /* Faz o textarea crescer */
+    flex-grow: 1; /* Faz o textarea crescer para preencher o espaço */
     min-height: 250px;
     margin-bottom: 12px;
     font-family: 'Courier New', Courier, monospace;
@@ -300,7 +300,7 @@ html[data-theme="light"] .dock button[aria-pressed="true"] { color: var(--panel)
 
   <div class="grid">
     <section class="card" aria-labelledby="h2constr">
-      <div class="body">
+        <div class="body">
         <h2 id="h2constr">Construção</h2>
         <div class="row" style="flex-direction:row; gap:12px; align-items:end;">
           <div class="field">
@@ -407,7 +407,7 @@ html[data-theme="light"] .dock button[aria-pressed="true"] { color: var(--panel)
     </section>
   </div>
   
-  <div class="grid" style="margin-top: 16px;">
+  <div class="grid bottom-grid" style="margin-top: 16px;">
       <section class="card" aria-labelledby="h2seq">
           <div class="body">
               <h2 id="h2seq">Sequenciador de Acordes</h2>
@@ -437,7 +437,7 @@ html[data-theme="light"] .dock button[aria-pressed="true"] { color: var(--panel)
           <div class="body">
               <h2 id="h2lyrics">Letras da Música</h2>
               <textarea id="lyricsEditor" class="field" placeholder="Escreva a letra da sua música aqui..."></textarea>
-              <button id="btnSaveLyrics" class="pill">Salvar Letra</button>
+              <button id="btnSaveLyrics" class="pill">Exportar Letra para PDF</button>
           </div>
       </section>
   </div>
@@ -461,6 +461,7 @@ html[data-theme="light"] .dock button[aria-pressed="true"] { color: var(--panel)
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 /* ===================== Teoria Musical ===================== */
@@ -535,7 +536,7 @@ dom.modalCampoHarmonico.addEventListener('click',e=>{if(e.target===dom.modalCamp
 dom.tonicSelect.addEventListener('change',()=>generateHarmonicFieldTables(parseInt(dom.tonicSelect.value,10)));
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!dom.modalCampoHarmonico.classList.contains('hidden'))dom.modalCampoHarmonico.classList.add('hidden')});
 
-/* ===================== SEQUENCIADOR LÓGICA ===================== */
+/* ===================== SEQUENCIADOR E LETRAS LÓGICA ===================== */
 let sequence=[];let isPlayingSeq=false;let schedulerTimer=null;let nextNoteTime=0.0;let currentChordInSeq=0;
 function addChordToSequence(){const currentState={root:dom.root.value,quality:dom.quality.value,inversion:dom.inversion.value,voicing:dom.voicing.value,octave:dom.octave.value,options:getOpts()};sequence.push({chordState:currentState,beats:4});renderSequence()}
 function renderSequence(){dom.sequenceList.innerHTML='';sequence.forEach((item,index)=>{const{rootSemi,q}=getChordStateAndMidi(item.chordState);const usaName=NOTE_NAMES_SHARP[rootSemi];let suffix='';if(q==='minor')suffix='m';if(q==='aug')suffix='+';if(q==='dim')suffix='°';if(q==='sus2')suffix='sus2';if(q==='sus4')suffix='sus4';if(q==='power')suffix='5';const chip=document.createElement('div');chip.className='chord-chip';chip.dataset.index=index;const nameSpan=document.createElement('span');nameSpan.className='chord-name';nameSpan.textContent=`${usaName}${suffix}`;const beatsSelect=document.createElement('select');beatsSelect.className='beats-select';[1,2,3,4,5,6,7,8].forEach(b=>{const opt=document.createElement('option');opt.value=b;opt.textContent=`${b}/4`;beatsSelect.add(opt)});beatsSelect.value=item.beats;beatsSelect.onchange=()=>{sequence[index].beats=parseInt(beatsSelect.value,10);saveState()};const removeBtn=document.createElement('button');removeBtn.className='remove-chord';removeBtn.innerHTML='&times;';removeBtn.onclick=e=>{e.stopPropagation();sequence.splice(index,1);renderSequence()};chip.appendChild(nameSpan);chip.appendChild(beatsSelect);chip.appendChild(removeBtn);dom.sequenceList.appendChild(chip)});saveState()}
@@ -543,9 +544,10 @@ function scheduler(){const scheduleAheadTime=0.1;while(nextNoteTime<AC.currentTi
 function playSequence(){if(isPlayingSeq||sequence.length===0)return;ensureAudio();isPlayingSeq=true;dom.btnPlaySeq.disabled=true;dom.btnStopSeq.disabled=false;currentChordInSeq=0;nextNoteTime=AC.currentTime+0.1;schedulerTimer=setInterval(scheduler,50)}
 function stopSequence(){if(!isPlayingSeq)return;isPlayingSeq=false;dom.btnPlaySeq.disabled=false;dom.btnStopSeq.disabled=true;clearInterval(schedulerTimer);schedulerTimer=null;clearPlaying();document.querySelectorAll('.chord-chip').forEach(c=>c.classList.remove('is-playing'))}
 function clearSequence(){stopSequence();sequence=[];renderSequence()}
+function saveAndExportLyrics(){saveState();const btn=dom.btnSaveLyrics;const originalText=btn.textContent;btn.textContent='Gerando PDF...';btn.disabled=true;setTimeout(()=>{try{const{jsPDF}=window.jspdf;const doc=new jsPDF();const lyricsText=dom.lyricsEditor.value;const pageHeight=doc.internal.pageSize.height;const margin=15;const maxWidth=doc.internal.pageSize.width-(margin*2);const lineHeight=7;let y=margin;doc.setFontSize(12);const lines=doc.splitTextToSize(lyricsText,maxWidth);lines.forEach(line=>{if(y+lineHeight>pageHeight-margin){doc.addPage();y=margin}doc.text(line,margin,y);y+=lineHeight});doc.save('letra-da-musica.pdf')}catch(error){console.error("Erro ao gerar PDF:",error);alert("Ocorreu um erro ao gerar o PDF.")}finally{btn.textContent='Exportado!';setTimeout(()=>{btn.textContent=originalText;btn.disabled=false},2000)}},100)}
 dom.btnAddChord.addEventListener('click',addChordToSequence);dom.btnPlaySeq.addEventListener('click',playSequence);dom.btnStopSeq.addEventListener('click',stopSequence);dom.btnClearSeq.addEventListener('click',clearSequence);
 dom.lyricsEditor.addEventListener('input',saveState);
-dom.btnSaveLyrics.addEventListener('click',()=>{saveState();const btn=dom.btnSaveLyrics;const originalText=btn.textContent;btn.textContent='Salvo!';btn.disabled=true;setTimeout(()=>{btn.textContent=originalText;btn.disabled=false},1500)});
+dom.btnSaveLyrics.addEventListener('click',saveAndExportLyrics);
 
 /* ===================== Inicialização ===================== */
 loadState();

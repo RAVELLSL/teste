@@ -113,7 +113,7 @@ button:hover{filter:brightness(1.08)} button:active{transform:translateY(1px)}
 .play{background:linear-gradient(135deg,var(--accent),var(--accent-2)); border:none; color:#06121a; box-shadow:0 8px 20px rgba(67,211,255,.22), inset 0 -2px 0 rgba(0,0,0,.12)}
 .stop{background:linear-gradient(135deg,var(--danger),#ff9a9e); border:none; color:#1a0505}
 .loop-on{background:linear-gradient(135deg,var(--amber),#ff8fab); color:#1b0b07; border:none}
-.pill{padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid var(--elev-b); font-size:12px}
+.pill{padding:10px 12px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid var(--elev-b); font-size:12px; font-weight:700}
 html[data-theme="light"] .pill{background:rgba(15,23,42,.04)}
 /* ===================== DISPLAY ===================== */
 .display{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 16px; border-top:1px dashed var(--elev-b);
@@ -139,6 +139,10 @@ html[data-theme="light"] .slider .bubble{background:rgba(15,23,42,.04)}
 .slider input[type="range"]::-moz-range-thumb{
     width:18px; height:18px; border-radius:50%; background:var(--thumb); border:2px solid var(--thumb-brd); box-shadow:0 2px 8px rgba(0,0,0,.45)
 }
+/* Etiquetas BAIXO/ALTO (referência visual) */
+.ends{grid-column:2/4; display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:-6px; padding:0 4px}
+.ends .left{opacity:.9} .ends .right{opacity:.9}
+
 /* ===================== DOCK (mobile) ===================== */
 .dock{display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:14px; z-index:6;
   background:linear-gradient(180deg,var(--panel-2),var(--panel)); border:1px solid var(--elev-b); border-radius:16px; padding:8px; gap:8px;
@@ -161,6 +165,51 @@ html[data-theme="light"] .kbd{background:rgba(15,23,42,.05)}
 .degree-chord-pair:nth-child(even){background:rgba(255,255,255,0.03)}
 .degree{font-family:ui-monospace, monospace; color:var(--muted)}
 .chord{font-weight:600}
+
+/* ===================== EXECUÇÃO EM 2 COLUNAS ===================== */
+.exec-card{ position:relative; overflow:visible }            /* evita corte */
+.exec-body{ padding-right:56px }                              /* espaço extra à direita */
+.exec-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start }
+.exec-col{ display:flex; flex-direction:column; gap:12px }
+@media (max-width:920px){ .exec-grid{grid-template-columns:1fr} }
+
+/* ===== Toolbar de Ações ===== */
+.action-toolbar{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:6px }
+@media (max-width:920px){ .action-toolbar{grid-template-columns:1fr 1fr} }
+#btnRec.is-recording{ background:linear-gradient(135deg,#ff9a9e,#ff6b6b); color:#1b0b0b; border:none }
+#btnLoop.loop-on{ background:linear-gradient(135deg,var(--amber),#ff8fab); color:#1b0b07; border:none }
+
+/* Painel de info abaixo dos botões */
+.play-info{ margin-top:8px; padding:10px 12px; border:1px dashed var(--elev-b);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel)); border-radius:12px; color:var(--muted)}
+.play-info p{margin:.25rem 0}
+
+/* ====== VOLUME VERTICAL (na borda direita) ====== */
+.vol-rail{
+  position:absolute; right:-26px; top:20px; bottom:20px; width:40px;
+  display:flex; align-items:center; justify-content:center; pointer-events:auto;
+}
+.vol-rail .track{
+  position:relative; height:100%; width:12px; border-radius:999px; background:var(--range-track);
+  box-shadow:inset 0 0 0 1px var(--elev-c);
+}
+.vol-rail .fill{
+  position:absolute; bottom:0; left:0; right:0; background:var(--range-fill);
+  border-radius:999px; height:30%; filter:drop-shadow(0 2px 8px rgba(67,211,255,.35));
+}
+#volumeV{
+  position:absolute; inset:0; width:100%; height:100%; margin:0; appearance:none; -webkit-appearance:none;
+  background:transparent; writing-mode:bt-lr; /* firefox */
+}
+#volumeV::-webkit-slider-runnable-track{ width:100%; height:100%; background:transparent }
+#volumeV::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%; background:var(--thumb);
+  border:2px solid var(--thumb-brd); box-shadow:0 2px 8px rgba(0,0,0,.45); transform:translateY(calc(-50% + 0px));
+}
+#volumeV::-moz-range-track{ background:transparent; height:100% }
+#volumeV::-moz-range-thumb{
+  width:18px; height:18px; border-radius:50%; background:var(--thumb); border:2px solid var(--thumb-brd); box-shadow:0 2px 8px rgba(0,0,0,.45)
+}
 </style>
 </head>
 <body>
@@ -285,85 +334,150 @@ html[data-theme="light"] .kbd{background:rgba(15,23,42,.05)}
       </div>
     </section>
 
-    <section class="card" aria-labelledby="h2exec">
-      <div class="body">
+    <section class="card exec-card" aria-labelledby="h2exec">
+      <!-- Volume vertical fixado na borda direita -->
+      <div class="vol-rail" aria-label="Volume vertical">
+        <div class="track">
+          <div class="fill" id="volFillV" aria-hidden="true" style="height:60%"></div>
+          <input id="volumeV" type="range" min="0" max="1" step="0.01" value="0.6" orient="vertical" aria-label="Volume vertical" />
+        </div>
+      </div>
+
+      <div class="body exec-body">
         <h2 id="h2exec">Execução</h2>
 
-        <div class="row">
-          <div class="field">
-            <label for="style">Articulação</label>
-            <select id="style">
-              <option value="block">Bloco</option><option value="arpUp">Arpejo ↑</option><option value="arpDown">Arpejo ↓</option>
-              <option value="strumUp">Violão ↑ (sim.)</option><option value="strumDown">Violão ↓ (sim.)</option>
-            </select>
+        <!-- ===== Execução em 2 colunas ===== -->
+        <div class="exec-grid">
+          <!-- Coluna A -->
+          <div class="exec-col">
+            <div class="row">
+              <div class="field">
+                <label for="style">Articulação</label>
+                <select id="style">
+                  <option value="block">Bloco</option>
+                  <option value="arpUp">Arpejo ↑</option>
+                  <option value="arpDown">Arpejo ↓</option>
+                  <option value="strumUp">Violão ↑ (sim.)</option>
+                  <option value="strumDown">Violão ↓ (sim.)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="voicing">Vozes</label>
+                <select id="voicing">
+                  <option value="closed">Fechada</option>
+                  <option value="open">Aberta (espalhada)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="octave">Oitava base</label>
+                <select id="octave">
+                  <option value="2">2</option><option value="3">3</option>
+                  <option value="4" selected>4</option><option value="5">5</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="tone">Timbre (sintetizador)</label>
+                <select id="tone">
+                  <option value="neutral" selected>Neutro</option>
+                  <option value="soft">Suave (LP mais baixo)</option>
+                  <option value="bright">Brilhante (LP mais alto)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="human">Humanização (ms máx.)</label>
+                <input id="human" type="number" min="0" max="30" step="1" value="6" />
+              </div>
+              <div class="field">
+                <label for="a4">Afinação base (A4)</label>
+                <input id="a4" type="number" value="440" min="420" max="460" step="1" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="ambience">Efeito Ambiente</label>
+                <select id="ambience">
+                  <option value="off">Desligado</option>
+                  <option value="room">Sala leve</option>
+                  <option value="hall">Hall suave</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="ambMix">Mix de Ambiente</label>
+                <input id="ambMix" type="range" min="0" max="1" step="0.01" value="0.6" />
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label for="voicing">Vozes</label>
-            <select id="voicing">
-              <option value="closed">Fechada</option><option value="open">Aberta (espalhada)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="octave">Oitava base</label>
-            <select id="octave">
-              <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
-            </select>
+
+          <!-- Coluna B -->
+          <div class="exec-col">
+
+            <div class="slider">
+              <label for="dur" class="muted">Duração (ms)</label>
+              <div class="fill" id="fillDur" aria-hidden="true"></div>
+              <input id="dur" type="range" min="200" max="4000" step="50" value="1500" />
+              <span id="durVal" class="bubble">1500</span>
+              <div class="ends"><span class="left">curta</span><span class="right">longa</span></div>
+            </div>
+
+            <div class="slider">
+              <label for="gap" class="muted">Arpejo/Strum (ms)</label>
+              <div class="fill" id="fillGap" aria-hidden="true"></div>
+              <input id="gap" type="range" min="5" max="180" step="5" value="75" />
+              <span id="gapVal" class="bubble">75</span>
+              <div class="ends"><span class="left">rápido</span><span class="right">lento</span></div>
+            </div>
+
+            <div class="slider">
+              <label for="adsrA" class="muted">Ataque (ms)</label>
+              <div class="fill" id="fillA" aria-hidden="true"></div>
+              <input id="adsrA" type="range" min="2" max="200" step="2" value="12" />
+              <span class="bubble" id="adsrAVal">12</span>
+              <div class="ends"><span class="left">rápido</span><span class="right">suave</span></div>
+            </div>
+
+            <div class="slider">
+              <label for="adsrR" class="muted">Liberação (ms)</label>
+              <div class="fill" id="fillR" aria-hidden="true"></div>
+              <input id="adsrR" type="range" min="60" max="1500" step="10" value="420" />
+              <span class="bubble" id="adsrRVal">420</span>
+              <div class="ends"><span class="left">curta</span><span class="right">longa</span></div>
+            </div>
+
+            <div class="slider">
+              <label for="volume" class="muted">Volume</label>
+              <div class="fill" id="fillVol" aria-hidden="true"></div>
+              <input id="volume" type="range" min="0" max="1" step="0.01" value="0.6" />
+              <span id="volVal" class="bubble">0.60</span>
+              <div class="ends"><span class="left">baixo</span><span class="right">alto</span></div>
+            </div>
+
+            <!-- Toolbar de ações -->
+            <div class="action-toolbar">
+              <button class="play" id="btnPlay" aria-label="Ouvir acorde">▶ Ouvir acorde</button>
+              <button class="stop" id="btnStop" aria-label="Parar">■ Parar</button>
+              <button id="btnLoop" class="pill loop" aria-pressed="false">Loop: <span id="loopState">off</span></button>
+              <button id="btnRec" class="pill rec">Gravar</button>
+              <a id="downloadLink" class="pill hidden" download="acorde.webm" style="grid-column:1/-1; text-align:center">Baixar gravação</a>
+            </div>
+
+            <!-- Painel compacto com info/atalhos -->
+            <div class="play-info">
+              <p class="footer" style="margin-top:0">
+                Atalhos: <span class="kbd">Espaço</span> tocar/parar •
+                <span class="kbd">Alt</span> + <span class="kbd">→/←</span> qualidade •
+                <span class="kbd">Alt</span> + <span class="kbd">↑/↓</span> tônica
+              </p>
+              <p class="footer hidden" id="engineNotice" style="margin-bottom:0"></p>
+            </div>
+
           </div>
         </div>
+        <!-- ===== /Execução em 2 colunas ===== -->
 
-        <div class="row">
-          <div class="field">
-            <label for="tone">Timbre (sintetizador)</label>
-            <select id="tone">
-              <option value="neutral" selected>Neutro</option>
-              <option value="soft">Suave (LP mais baixo)</option>
-              <option value="bright">Brilhante (LP mais alto)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="human">Humanização (ms máx.)</label>
-            <input id="human" type="number" min="0" max="30" step="1" value="6" />
-          </div>
-          <div class="field">
-            <label for="a4">Afinação base (A4)</label>
-            <input id="a4" type="number" value="440" min="420" max="460" step="1" />
-          </div>
-        </div>
-
-        <div class="slider"><label for="dur" class="muted">Duração (ms)</label><div class="fill" id="fillDur" aria-hidden="true"></div>
-          <input id="dur" type="range" min="200" max="4000" step="50" value="1500" /><span id="durVal" class="bubble">1500</span></div>
-        <div class="slider"><label for="gap" class="muted">Arpejo/Strum (ms)</label><div class="fill" id="fillGap" aria-hidden="true"></div>
-          <input id="gap" type="range" min="5" max="180" step="5" value="75" /><span id="gapVal" class="bubble">75</span></div>
-        <div class="slider"><label for="adsrA" class="muted">Ataque (ms)</label><div class="fill" id="fillA" aria-hidden="true"></div>
-          <input id="adsrA" type="range" min="2" max="200" step="2" value="12" /><span class="bubble" id="adsrAVal">12</span></div>
-        <div class="slider"><label for="adsrR" class="muted">Liberação (ms)</label><div class="fill" id="fillR" aria-hidden="true"></div>
-          <input id="adsrR" type="range" min="60" max="1500" step="10" value="420" /><span class="bubble" id="adsrRVal">420</span></div>
-        <div class="slider"><label for="volume" class="muted">Volume</label><div class="fill" id="fillVol" aria-hidden="true"></div>
-          <input id="volume" type="range" min="0" max="1" step="0.01" value="0.6" /><span id="volVal" class="bubble">0.60</span></div>
-
-        <div class="row">
-          <div class="field">
-            <label for="ambience">Efeito Ambiente</label>
-            <select id="ambience">
-              <option value="off">Desligado</option><option value="room">Sala leve</option><option value="hall">Hall suave</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="ambMix">Mix de Ambiente</label>
-            <input id="ambMix" type="range" min="0" max="1" step="0.01" value="0.6" />
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="play" id="btnPlay" aria-label="Ouvir acorde">▶ Ouvir acorde</button>
-          <button class="stop" id="btnStop" aria-label="Parar">■ Parar</button>
-          <button id="btnLoop" class="pill" aria-pressed="false">Loop: <span id="loopState">off</span></button>
-          <button id="btnRec" class="pill">Gravar</button>
-          <a id="downloadLink" class="pill hidden" download="acorde.webm">Baixar gravação</a>
-        </div>
-
-        <p class="footer">Atalhos: <span class="kbd">Espaço</span> tocar/parar • <span class="kbd">Alt</span> + <span class="kbd">→/←</span> qualidade • <span class="kbd">Alt</span> + <span class="kbd">↑/↓</span> tônica</p>
-        <p class="footer hidden" id="engineNotice"></p>
       </div>
     </section>
   </div>
@@ -375,10 +489,10 @@ html[data-theme="light"] .kbd{background:rgba(15,23,42,.05)}
   </div>
 </div>
 
-<div id="modalCampoHarmonico" class="modal-overlay hidden">
+<div id="modalCampoHarmonico" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal-content">
     <button id="modalClose" class="modal-close-btn" aria-label="Fechar">&times;</button>
-    <h2>Tabelas de Campo Harmônico</h2>
+    <h2 id="modalTitle">Tabelas de Campo Harmônico</h2>
     <div class="modal-controls">
       <label for="tonicSelect">Tonalidade:</label>
       <select id="tonicSelect"></select>
@@ -435,9 +549,9 @@ function intervalsToMidi(rootSemi,ints,octaveBase,inversion,voicing,doubleBass){
   for(let i=0;i<invSteps;i++){ midi[i]+=12; }
   midi.sort((a,b)=>a-b);
   if(doubleBass){ midi.unshift(midi[0]-12); }
-  // Clamping de notas: restringe as notas a uma faixa audível/agradável (C2 a C7),
-  // evitando oitavas extremas que podem ocorrer com inversões ou vozes abertas.
-  midi=midi.map(m=>{ while(m<36) m+=12; while(m>96) m-=12; return m; });
+  // Clamping C2..C7 + anticolisão
+  midi=midi.map(m=>{ while(m<36) m+=12; while(m>96) m-=12; return m; }).sort((a,b)=>a-b);
+  const used=new Set(); midi = midi.map(n=>{ while(used.has(n) && n+12<=96) n+=12; used.add(n); return n; });
   return Array.from(new Set(midi));
 }
 
@@ -445,7 +559,7 @@ function midiToFreq(m,a4=440){ return a4*Math.pow(2,(m-69)/12); }
 function midiToName(m,useFlats=false){ const pc=((m%12)+12)%12; const names=useFlats?NOTE_NAMES_FLAT:NOTE_NAMES_SHARP; const oct=Math.floor(m/12)-1; return names[pc]+oct; }
 function midiToNameSharpOnly(m){ const pc=((m%12)+12)%12; return NOTE_NAMES_SHARP[pc]+(Math.floor(m/12)-1); }
 
-/* ===================== Áudio (Web Audio API) ===================== */
+/* ===================== ÁUDIO ===================== */
 let AC=null, master=null, ambienceBus=null, ambienceChain=null, ambienceSend=null;
 let playingNodes=[]; let loop=false, loopTimer=null; let mediaRecorder=null, recordedChunks=[];
 
@@ -460,10 +574,7 @@ function ensureAudio(){
     ambienceChain={delay,fb,lp}; updateAmbienceParams();
     audioStatus.textContent='ativo';
   }
-  // Garante que o áudio seja reativado após a interação do usuário (política de autoplay dos navegadores)
-  if (AC.state === 'suspended') {
-    AC.resume();
-  }
+  if (AC.state === 'suspended') { AC.resume(); }
 }
 
 function clearPlaying(){
@@ -474,7 +585,7 @@ function clearPlaying(){
 
 function updateAmbienceParams(){
   if(!AC||!ambienceChain) return;
-  const kind=ambience.value; const mix=parseFloat(document.getElementById('ambMix').value||'0.6');
+  const kind=ambience.value; const mix=parseFloat(ambMix.value||'0.6');
   let send=0,dtime=0.2,fb=0.0,lp=3000,bus=0;
   if(kind==='room'){ send=.12; dtime=.18; fb=.28; lp=3500; bus=mix; }
   else if(kind==='hall'){ send=.18; dtime=.33; fb=.42; lp=2800; bus=mix; }
@@ -487,12 +598,11 @@ function updateAmbienceParams(){
 
 /* ===================== Sintetizador interno ===================== */
 function createToneFilters(tone){
-  const hp=AC.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=60;
+  const hp=AC.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=60; hp.Q.value=0.7;
   const lp=AC.createBiquadFilter(); lp.type='lowpass';
   lp.frequency.value= tone==='soft'?5200 : tone==='bright'?11000 : 7600;
   return {hp,lp};
 }
-
 function scheduleSynthNote(freq,when,durMs,attackMs,releaseMs,tone,amp=1){
   const o1=AC.createOscillator(), o2=AC.createOscillator(), g=AC.createGain();
   o1.type='sine'; o2.type='triangle'; o1.frequency.value=freq; o2.frequency.value=freq*1.003;
@@ -507,12 +617,10 @@ function scheduleSynthNote(freq,when,durMs,attackMs,releaseMs,tone,amp=1){
   o1.stop(stopAt); o2.stop(stopAt); lfo.stop(stopAt); lfo2.stop(stopAt);
   playingNodes.push({ stop:()=>{try{o1.stop();o2.stop();lfo.stop();lfo2.stop();}catch(e){}} });
 }
-
 function humanize(ms,j){ if(!j||j<=0) return ms; const r=(Math.random()*2-1)*j; return ms+r; }
 
-/* ===================== 🔊 SoundFont (amostrado) ===================== */
+/* ===================== 🔊 SoundFont ===================== */
 let sfLibLoaded=false, sfInstrument=null, sfRequestedName='acoustic_grand_piano';
-
 async function ensureSoundfontLib(){
   if (sfLibLoaded) return;
   const tryLoad = (src) => new Promise((resolve, reject) => {
@@ -520,22 +628,17 @@ async function ensureSoundfontLib(){
     s.onload = () => resolve(); s.onerror = () => reject(new Error('Falha ao carregar: ' + src));
     document.head.appendChild(s);
   });
-  try {
-    await tryLoad('https://unpkg.com/soundfont-player@0.15.7/dist/soundfont-player.js');
-  } catch (_) {
-    await tryLoad('https://cdn.jsdelivr.net/npm/soundfont-player@0.15.7/dist/soundfont-player.js');
-  }
+  try { await tryLoad('https://unpkg.com/soundfont-player@0.15.7/dist/soundfont-player.js'); }
+  catch (_) { await tryLoad('https://cdn.jsdelivr.net/npm/soundfont-player@0.15.7/dist/soundfont-player.js'); }
   if (!window.Soundfont) throw new Error('Biblioteca SoundFont indisponível.');
   sfLibLoaded = true;
 }
-
 async function loadSfInstrument(name){
   ensureAudio();
   await ensureSoundfontLib();
   engineNotice.classList.remove('hidden');
   engineNotice.textContent = 'Carregando SoundFont: ' + name + ' …';
   const BASE = 'https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM';
-  // FIX: Removido o cache buster `?ts=${Date.now()}` para permitir que o navegador armazene o arquivo em cache.
   const nameToUrl = (i) => `${BASE}/${encodeURIComponent(i)}-mp3.js`;
   try {
     sfInstrument = await window.Soundfont.instrument(AC, name, { format: 'mp3', soundfont: 'FluidR3_GM', nameToUrl, destination: master });
@@ -551,9 +654,8 @@ async function loadSfInstrument(name){
     throw err;
   }
 }
-
 function scheduleSfNote(midiNote, when, durMs, attackMs, releaseMs, amp) {
-  const name = midiToNameSharpOnly(midiNote);
+  const name = NOTE_NAMES_SHARP[((midiNote%12)+12)%12] + (Math.floor(midiNote/12)-1);
   const player = sfInstrument.play(name, when, {
     gain: amp, duration: (durMs + releaseMs) / 1000,
     attack: attackMs / 1000, release: releaseMs / 1000
@@ -561,24 +663,26 @@ function scheduleSfNote(midiNote, when, durMs, attackMs, releaseMs, amp) {
   playingNodes.push({ stop: ()=>{ try{player.stop();}catch(e){} } });
 }
 
-/* ===================== Dispatcher de Reprodução (Refatorado) ===================== */
+/* ===================== Dispatcher ===================== */
+let lastSfFail = 0;
 async function playCurrentChord(){
   const midiNotes = updateDisplay();
   ensureAudio();
   clearPlaying();
 
-  const useSoundFont = engineSelect.value === 'sf';
-  if (useSoundFont && (!sfInstrument || sfInstrument.name !== sfRequestedName)) {
-    try {
-      await loadSfInstrument(sfRequestedName);
-    } catch {
-      // Falha ao carregar SF, toca com o synth como fallback.
-      // O aviso ao usuário já é tratado em `loadSfInstrument`.
+  const useSF = engineSelect.value === 'sf';
+  if (useSF && (!sfInstrument || sfInstrument.name !== sfRequestedName)) {
+    try { await loadSfInstrument(sfRequestedName); }
+    catch {
+      const now = Date.now();
+      if (now - lastSfFail < 500) return;
+      lastSfFail = now;
+      engineSelect.value = 'synth';
+      sfControls.classList.add('hidden');
       return playCurrentChord();
     }
   }
 
-  // Obter todos os parâmetros da UI uma única vez
   const params = {
     dur: parseInt(durEl.value, 10), gap: parseInt(gapEl.value, 10),
     A: parseInt(adsrA.value, 10), R: parseInt(adsrR.value, 10),
@@ -589,7 +693,7 @@ async function playCurrentChord(){
 
   const notes = [...midiNotes].sort((a,b) => a-b);
   const amp = 1 / Math.sqrt(Math.max(1, notes.length));
-  const now = AC.currentTime + 0.02;
+  const t0 = AC.currentTime + 0.02;
   const isStrum = params.style.startsWith('strum');
   const localA = isStrum ? Math.min(params.A, 16) : params.A;
 
@@ -598,16 +702,12 @@ async function playCurrentChord(){
 
   order.forEach((midi, i) => {
     let delayMs = 0;
-    if (params.style !== 'block') {
-      delayMs = humanize(i * baseGap, params.jitter);
-    }
-    const scheduleTime = now + (delayMs / 1000);
-
-    if (useSoundFont) {
-      scheduleSfNote(midi, scheduleTime, params.dur, localA, params.R, amp);
-    } else {
-      const freq = midiToFreq(midi, params.a4);
-      scheduleSynthNote(freq, scheduleTime, params.dur, localA, params.R, params.tone, amp);
+    if (params.style !== 'block') delayMs = humanize(i * baseGap, params.jitter);
+    const when = t0 + (delayMs / 1000);
+    if (useSF) scheduleSfNote(midi, when, params.dur, localA, params.R, amp);
+    else {
+      const freq = a4ToFreq(midi, params.a4);
+      scheduleSynthNote(freq, when, params.dur, localA, params.R, params.tone, amp);
     }
   });
 
@@ -617,9 +717,9 @@ async function playCurrentChord(){
     loopTimer = setTimeout(playCurrentChord, delayMs);
   }
 }
+function a4ToFreq(midi, a4){ return a4*Math.pow(2,(midi-69)/12); }
 
-/* ===================== UI / Interação ===================== */
-// Mapeamento de elementos do DOM
+/* ===================== UI ===================== */
 const dom = {};
 const ids = [
   'root', 'quality', 'inversion', 'voicing', 'octave', 'style', 'tone', 'human', 'dur', 'gap',
@@ -629,23 +729,24 @@ const ids = [
   'fillDur', 'fillGap', 'fillA', 'fillR', 'fillVol',
   'audioStatus', 'engineSelect', 'sfControls', 'sfInstrument', 'engineNotice',
   'dockPlay', 'dockStop', 'dockLoop',
-  'modalCampoHarmonico', 'btnCampoHarmonico', 'modalClose', 'tonicSelect', 'harmonicFieldTables'
+  'modalCampoHarmonico', 'btnCampoHarmonico', 'modalClose', 'tonicSelect', 'harmonicFieldTables',
+  'volumeV', 'volFillV'
 ];
 ids.forEach(id => dom[id] = document.getElementById(id));
-// Renomear para conveniência
+
 const { rootEl, quality, inversion, voicing, octave, styleEl, toneEl, humanEl, durEl, gapEl,
         adsrA, adsrR, a4El, ambience, ambMix, volume, symbol, notesOut, btnPlay, btnStop, btnLoop,
         loopState, themeSelect, btnRec, downloadLink, durVal, gapVal, adsrAVal, adsrRVal, volVal,
         fillDur, fillGap, fillA, fillR, fillVol, audioStatus, engineSelect, sfControls,
         sfInstrumentSel, engineNotice, dockPlay, dockStop, dockLoop, modal, btnOpenModal,
-        btnCloseModal, tonicSelect, tablesContainer
+        btnCloseModal, tonicSelect, tablesContainer, volumeV, volFillV
       } = { ...dom, rootEl: dom.root, quality: dom.quality, inversion: dom.inversion,
             voicing: dom.voicing, octave: dom.octave, styleEl: dom.style, toneEl: dom.tone,
             humanEl: dom.human, durEl: dom.dur, gapEl: dom.gap, a4El: dom.a4, notesOut: dom.notes,
             sfInstrumentSel: dom.sfInstrument, modal: dom.modalCampoHarmonico,
             btnOpenModal: dom.btnCampoHarmonico, btnCloseModal: dom.modalClose, tablesContainer: dom.harmonicFieldTables };
 
-
+/* Sync sliders e bolhas */
 function updateFills(){
   const pct=(v,min,max)=>(v-min)/(max-min);
   fillDur.style.transform=`scaleX(${pct(+durEl.value,200,4000)})`;
@@ -653,6 +754,8 @@ function updateFills(){
   fillA.style.transform=`scaleX(${pct(+adsrA.value,2,200)})`;
   fillR.style.transform=`scaleX(${pct(+adsrR.value,60,1500)})`;
   fillVol.style.transform=`scaleX(${pct(+volume.value,0,1)})`;
+  // volume vertical fill (altura proporcional)
+  volFillV.style.height = `${Math.max(0, Math.min(1, +volumeV.value))*100}%`;
 }
 function syncLabels(){
   durVal.textContent=durEl.value; gapVal.textContent=gapEl.value;
@@ -663,6 +766,17 @@ function syncLabels(){
 }
 [durEl,gapEl,adsrA,adsrR,volume].forEach(el=>el.addEventListener('input', syncLabels));
 
+/* espelhamento volume horizontal <-> vertical */
+function setVolume(val){
+  const v = Math.max(0, Math.min(1, parseFloat(val)));
+  volume.value = v;
+  volumeV.value = v;
+  if(master) master.gain.setTargetAtTime(v, AC?.currentTime || 0, 0.01);
+  syncLabels();
+}
+volume.addEventListener('input', ()=> setVolume(volume.value));
+volumeV.addEventListener('input', ()=> setVolume(volumeV.value));
+
 function getOpts(){
   const g=id=>document.getElementById(id).getAttribute('aria-pressed')==='true';
   return {
@@ -670,7 +784,6 @@ function getOpts(){
     omit3:g('omit3'), omit5:g('omit5'), b5:g('b5'), sharp5:g('sharp5'), b9:g('b9'), sharp9:g('sharp9'), b13:g('b13'), doubleBass:g('doubleBass')
   };
 }
-
 function qualityConstraints(){
   const omit3Btn=document.getElementById('omit3');
   if(quality.value==='sus2'||quality.value==='sus4'){ omit3Btn.setAttribute('aria-pressed','true'); omit3Btn.disabled=true; }
@@ -678,12 +791,16 @@ function qualityConstraints(){
   const opts=getOpts(); const has7=opts.add7||opts.addMaj7;
   [...inversion.options].forEach(o=>o.disabled=false); inversion.options[3].disabled=!has7; if(!has7 && inversion.value==='3') inversion.value='0';
 }
-
 function updateDisplay(){
   qualityConstraints();
+  const NOTE_NAMES_SHARP=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  const NOTE_NAMES_FLAT =["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
   const rootSemi=parseInt(rootEl.value,10), q=quality.value, opts=getOpts();
   const ints=buildChordIntervals(q,{...opts});
   const midi=intervalsToMidi(rootSemi, ints, parseInt(octave.value,10), parseInt(inversion.value,10), voicing.value, opts.doubleBass);
+
+  const USA_TO_BR_NOTES={'C':'Dó','D':'Ré','E':'Mi','F':'Fá','G':'Sol','A':'Lá','B':'Si'};
+  const convertToBrNote=n=>{ if(!n) return ''; const b=n.charAt(0),acc=n.substring(1); return (USA_TO_BR_NOTES[b]||b)+acc; };
 
   const usaName=NOTE_NAMES_SHARP[rootSemi], brName=convertToBrNote(usaName);
   let suffix=''; if(q==='minor') suffix='m'; if(q==='aug') suffix='+'; if(q==='dim') suffix='°'; if(q==='sus2') suffix='sus2'; if(q==='sus4') suffix='sus4'; if(q==='power') suffix='5';
@@ -694,20 +811,22 @@ function updateDisplay(){
   const bassPc=midi[0]%12;
   if(rootSemi!==bassPc){
     const useFlats=[1,3,6,8,10].includes(rootSemi);
-    const usaBass=midiToName(midi[0], useFlats).slice(0, -1);
+    const name=(m,useFlats)=>{ const pc=((m%12)+12)%12; const names=useFlats?NOTE_NAMES_FLAT:NOTE_NAMES_SHARP; const oct=Math.floor(m/12)-1; return names[pc]+oct; };
+    const usaBass=name(midi[0], useFlats).slice(0, -1);
     const brBass=convertToBrNote(usaBass);
     usaChordStr+=`/${usaBass}`; brChordStr+=`/${brBass}`;
   }
   symbol.textContent=`${usaChordStr}  /  ${brChordStr}`;
   const useFlatsForNotes=[1,3,6,8,10].includes(rootSemi);
-  const noteNames=midi.map(m=>midiToName(m,useFlatsForNotes));
+  const name=(m,useFlats)=>{ const pc=((m%12)+12)%12; const names=useFlats?NOTE_NAMES_FLAT:NOTE_NAMES_SHARP; const oct=Math.floor(m/12)-1; return names[pc]+oct; };
+  const noteNames=midi.map(m=>name(m,useFlatsForNotes));
   notesOut.textContent='Notas: '+noteNames.join('  ');
   saveState();
   return midi;
 }
 
 /* ===================== Persistência ===================== */
-const STORAGE_KEY='chordToolState_v9'; // Versão incrementada
+const STORAGE_KEY='chordToolState_v10';
 function saveState(){
   const state={
     root:rootEl.value, quality:quality.value, inversion:inversion.value, voicing:voicing.value, octave:octave.value,
@@ -727,7 +846,8 @@ function loadState(){
     if(s.human) humanEl.value=s.human;
     if(s.options&&Array.isArray(s.options)){ s.options.forEach(o=>{ const b=document.getElementById(o.id); if(b) b.setAttribute('aria-pressed', o.pressed); }); }
     if(s.dur) durEl.value=s.dur; if(s.gap) gapEl.value=s.gap; if(s.adsrA) adsrA.value=s.adsrA; if(s.adsrR) adsrR.value=s.adsrR;
-    if(s.a4) a4El.value=s.a4; if(s.ambience) ambience.value=s.ambience; if(s.ambMix) ambMix.value=s.ambMix; if(s.volume) volume.value=s.volume;
+    if(s.a4) a4El.value=s.a4; if(s.ambience) ambience.value=s.ambience; if(s.ambMix) ambMix.value=s.ambMix;
+    if(s.volume){ volume.value=s.volume; volumeV.value=s.volume; }
     if(s.theme){ document.documentElement.setAttribute('data-theme', s.theme); themeSelect.value=s.theme; }
     if(s.engine){ engineSelect.value=s.engine; sfControls.classList.toggle('hidden', s.engine !== 'sf'); toneEl.disabled = (s.engine==='sf'); }
     if(s.sfInst){ sfInstrumentSel.value=s.sfInst; sfRequestedName=s.sfInst; }
@@ -743,12 +863,9 @@ document.querySelectorAll('.checkline button.tag').forEach(button=>{
   button.addEventListener('click', ()=>{ const p=button.getAttribute('aria-pressed')==='true'; button.setAttribute('aria-pressed', String(!p)); updateDisplay(); });
 });
 
-// Ações de Controle de Áudio
 function toggleLoop() {
-  loop=!loop;
-  loopState.textContent=loop?'on':'off';
-  btnLoop.classList.toggle('loop-on', loop);
-  btnLoop.setAttribute('aria-pressed', String(loop));
+  loop=!loop; loopState.textContent=loop?'on':'off';
+  btnLoop.classList.toggle('loop-on', loop); btnLoop.setAttribute('aria-pressed', String(loop));
   dockLoop.classList.toggle('loop-on', loop);
   if(loop) { playCurrentChord(); } else { clearPlaying(); }
 }
@@ -765,27 +882,34 @@ btnRec.addEventListener('click', ()=>{
   if(!mediaRecorder){
     const dest=AC.createMediaStreamDestination();
     master.disconnect(AC.destination); master.connect(dest); master.connect(AC.destination);
-    mediaRecorder=new MediaRecorder(dest.stream, { mimeType: 'audio/webm' });
+    const tryTypes=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
+    const mime=tryTypes.find(t=>window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+    try{ mediaRecorder=new MediaRecorder(dest.stream, mime ? { mimeType:mime } : undefined); }
+    catch(e){ alert('Seu navegador não suporta gravação de áudio.'); return; }
     mediaRecorder.ondataavailable=(e)=>{ if(e.data.size>0) recordedChunks.push(e.data); };
     mediaRecorder.onstop=()=>{
-      const blob=new Blob(recordedChunks,{type: mediaRecorder.mimeType });
+      const blob=new Blob(recordedChunks,{type: mediaRecorder.mimeType || 'audio/webm' });
       recordedChunks=[];
       const url=URL.createObjectURL(blob);
       downloadLink.href=url;
       downloadLink.download='acorde_'+new Date().toISOString().replace(/[:.]/g,'-')+'.webm';
       downloadLink.classList.remove('hidden');
+      btnRec.classList.remove('is-recording'); btnRec.textContent='Gravar';
     };
   }
   if(mediaRecorder.state!=='recording'){
-    downloadLink.classList.add('hidden'); recordedChunks=[]; mediaRecorder.start(); btnRec.textContent='Gravando...';
-  }else{
-    mediaRecorder.stop(); btnRec.textContent='Gravar';
-  }
+    downloadLink.classList.add('hidden'); recordedChunks=[]; mediaRecorder.start();
+    btnRec.classList.add('is-recording'); btnRec.textContent='Gravando...';
+  }else{ mediaRecorder.stop(); }
 });
 
-// Atalhos
+// Atalhos (bloqueia quando modal aberto)
 window.addEventListener('keydown', (e)=>{
-  if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='SELECT' || modal.style.display === 'flex') return;
+  const tag = document.activeElement && document.activeElement.tagName;
+  const isForm = tag==='INPUT' || tag==='SELECT' || tag==='TEXTAREA';
+  const modalOpen = !modal.classList.contains('hidden');
+  if(isForm || modalOpen) return;
+
   if(e.code==='Space'){ e.preventDefault(); if(playingNodes.length > 0){ clearPlaying(); } else { playCurrentChord(); } }
   if(e.altKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){ e.preventDefault(); let v=parseInt(rootEl.value,10); rootEl.value=(v+(e.key==='ArrowUp'?1:-1)+12)%12; updateDisplay(); }
   if(e.altKey&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){ e.preventDefault(); const keys=Object.keys(QUALITIES); const idx=keys.indexOf(quality.value);
@@ -808,7 +932,6 @@ async function switchEngine() {
     }
     try {
       await loadSfInstrument(sfRequestedName);
-      // micro-preview
       ensureAudio();
       sfInstrument.play('A4', AC.currentTime + 0.02, { gain: 0.6, duration: 0.3 });
     } catch (_) {}
@@ -818,7 +941,7 @@ engineSelect.addEventListener('change', switchEngine);
 sfInstrumentSel.addEventListener('change', ()=>{
   sfRequestedName = sfInstrumentSel.value;
   saveState();
-  switchEngine(); // Recarrega o instrumento
+  switchEngine();
 });
 
 // Monitor status de áudio
@@ -851,14 +974,14 @@ function generateHarmonicFieldTables(tonicIndex){
   }
 }
 NOTE_NAMES_SHARP.forEach((note,idx)=>{ const br=convertToBrNote(note); const opt=new Option(`${note} / ${br}`, idx); tonicSelect.add(opt); });
-btnOpenModal.addEventListener('click', ()=>{ tonicSelect.value=rootEl.value; generateHarmonicFieldTables(parseInt(tonicSelect.value,10)); modal.classList.remove('hidden'); });
+btnOpenModal.addEventListener('click', ()=>{ tonicSelect.value=rootEl.value; generateHarmonicFieldTables(parseInt(tonicSelect.value,10)); modal.classList.remove('hidden'); btnCloseModal.focus(); });
 btnCloseModal.addEventListener('click', ()=>{ modal.classList.add('hidden'); });
 modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.classList.add('hidden'); });
 tonicSelect.addEventListener('change', ()=> generateHarmonicFieldTables(parseInt(tonicSelect.value,10)));
 window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !modal.classList.contains('hidden')) modal.classList.add('hidden'); });
 
 /* ===================== Inicialização ===================== */
-loadState(); updateDisplay(); updateFills();
+loadState(); updateDisplay(); setVolume(volume.value); updateFills();
 
 });
 </script>

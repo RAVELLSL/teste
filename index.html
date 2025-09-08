@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Seletor e Sequenciador de Acordes • Web Audio</title>
+<title>Estúdio de Acordes e Letras • Web Audio</title>
 <style>
 /* ===================== THEME TOKENS (NEON - DEFAULT) ===================== */
 :root {
@@ -205,7 +205,7 @@ html[data-theme="light"] .dock button[aria-pressed="true"] { color: var(--panel)
     background: linear-gradient(180deg, var(--panel-2), var(--panel)); border-radius: 12px; color: var(--muted);
 }
 
-/* ===================== SEQUENCIADOR ===================== */
+/* ===================== SEQUENCIADOR E LETRAS ===================== */
 .sequencer-controls { display: flex; gap: 24px; align-items: flex-end; margin-bottom: 16px; flex-wrap: wrap; }
 .sequencer-actions { display: flex; gap: 10px; }
 .sequencer-actions button { padding-left: 16px; padding-right: 16px; }
@@ -236,6 +236,16 @@ html[data-theme="light"] .dock button[aria-pressed="true"] { color: var(--panel)
     color: #000;
     box-shadow: 0 0 10px var(--accent-2);
 }
+.chord-chip .chord-name { flex-grow: 1; }
+.chord-chip .beats-select {
+    background: var(--panel-2);
+    border: 1px solid var(--elev-b);
+    color: var(--muted);
+    font-size: 12px;
+    border-radius: 6px;
+    padding: 4px;
+    margin-left: 8px;
+}
 .chord-chip .remove-chord {
     background: var(--danger);
     color: white;
@@ -250,6 +260,21 @@ html[data-theme="light"] .dock button[aria-pressed="true"] { color: var(--panel)
     padding: 0;
     font-weight: bold;
 }
+.lyrics-card .body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+#lyricsEditor {
+    width: 100%;
+    flex-grow: 1; /* Faz o textarea crescer */
+    min-height: 250px;
+    margin-bottom: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    line-height: 1.6;
+    resize: vertical;
+}
 </style>
 </head>
 <body>
@@ -260,7 +285,7 @@ html[data-theme="light"] .dock button[aria-pressed="true"] { color: var(--panel)
     <div class="title">
       <span class="dot"></span>
       <div>
-        <h1>Seletor e Sequenciador de Acordes</h1>
+        <h1>Estúdio de Acordes e Letras</h1>
         <div class="sub">Web Audio • sintetizador + SoundFont opcional • tema claro/escuro</div>
       </div>
     </div>
@@ -382,30 +407,40 @@ html[data-theme="light"] .dock button[aria-pressed="true"] { color: var(--panel)
     </section>
   </div>
   
-  <section class="card" aria-labelledby="h2seq" style="margin-top: 16px;">
-      <div class="body">
-          <h2 id="h2seq">Sequenciador de Acordes</h2>
-          <div class="sequencer-controls">
-              <div class="slider-group">
-                  <div class="slider-header">
-                      <label for="bpm">Andamento (BPM)</label>
-                      <span id="bpmVal" class="bubble">120</span>
+  <div class="grid" style="margin-top: 16px;">
+      <section class="card" aria-labelledby="h2seq">
+          <div class="body">
+              <h2 id="h2seq">Sequenciador de Acordes</h2>
+              <div class="sequencer-controls">
+                  <div class="slider-group">
+                      <div class="slider-header">
+                          <label for="bpm">Andamento (BPM)</label>
+                          <span id="bpmVal" class="bubble">120</span>
+                      </div>
+                      <div class="slider-track-wrapper">
+                           <div class="fill" id="fillBpm" aria-hidden="true"></div>
+                           <input id="bpm" type="range" min="40" max="240" step="1" value="120">
+                      </div>
                   </div>
-                  <div class="slider-track-wrapper">
-                       <div class="fill" id="fillBpm" aria-hidden="true"></div>
-                       <input id="bpm" type="range" min="40" max="240" step="1" value="120">
+                  <div class="sequencer-actions">
+                      <button id="btnPlaySeq" class="play">▶ Tocar</button>
+                      <button id="btnStopSeq" class="stop">■ Parar</button>
+                      <button id="btnClearSeq" class="pill">Limpar</button>
                   </div>
               </div>
-              <div class="sequencer-actions">
-                  <button id="btnPlaySeq" class="play">▶ Tocar Sequência</button>
-                  <button id="btnStopSeq" class="stop">■ Parar</button>
-                  <button id="btnClearSeq" class="pill">Limpar</button>
-              </div>
+              <div id="sequenceList" class="sequence-list">
+                  </div>
           </div>
-          <div id="sequenceList" class="sequence-list">
-              </div>
-      </div>
-  </section>
+      </section>
+      
+      <section class="card lyrics-card" aria-labelledby="h2lyrics">
+          <div class="body">
+              <h2 id="h2lyrics">Letras da Música</h2>
+              <textarea id="lyricsEditor" class="field" placeholder="Escreva a letra da sua música aqui..."></textarea>
+              <button id="btnSaveLyrics" class="pill">Salvar Letra</button>
+          </div>
+      </section>
+  </div>
 
   <div class="dock actions" aria-hidden="true">
     <button class="play" id="dockPlay">▶</button>
@@ -455,11 +490,11 @@ async function loadSfInstrument(name){ensureAudio();await ensureSoundfontLib();d
 function scheduleSfNote(midiNote,when,durMs,attackMs,releaseMs,amp){const name=midiToName(midiNote);const player=sfInstrument.play(name,when,{gain:amp,duration:(durMs+releaseMs)/1000,attack:attackMs/1000,release:releaseMs/1000});playingNodes.push({stop:()=>{try{player.stop()}catch(e){}}})}
 
 /* ===================== Dispatcher ===================== */
-let lastSfFail=0;async function playCurrentChord(){const midiNotes=updateDisplay();ensureAudio();clearPlaying();const useSF=dom.engineSelect.value==='sf';if(useSF&&(!sfInstrument||sfInstrument.name!==sfRequestedName)){try{await loadSfInstrument(sfRequestedName)}catch{const now=Date.now();if(now-lastSfFail<500)return;lastSfFail=now;dom.engineSelect.value='synth';dom.sfControls.classList.add('hidden');return playCurrentChord()}}const params={dur:parseInt(dom.dur.value,10),gap:parseInt(dom.gap.value,10),A:parseInt(dom.adsrA.value,10),R:parseInt(dom.adsrR.value,10),style:dom.style.value,tone:dom.tone.value,jitter:parseInt(dom.human.value||'0',10),a4:parseFloat(dom.a4.value)};const notes=[...midiNotes].sort((a,b)=>a-b);const amp=1/Math.sqrt(Math.max(1,notes.length));const t0=AC.currentTime+0.02;const isStrum=params.style.startsWith('strum');const localA=isStrum?Math.min(params.A,16):params.A;const order=(params.style==='arpDown'||params.style==='strumDown')?[...notes].reverse():notes;const baseGap=isStrum?Math.max(params.gap,18):params.gap;order.forEach((midi,i)=>{let delayMs=0;if(params.style!=='block')delayMs=humanize(i*baseGap,params.jitter);const when=t0+(delayMs/1000);if(useSF&&sfInstrument)scheduleSfNote(midi,when,params.dur,localA,params.R,amp);else{const freq=midiToFreq(midi,params.a4);scheduleSynthNote(freq,when,params.dur,localA,params.R,params.tone,amp)}});if(loop){const totalGap=(notes.length-1)*baseGap;const delayMs=Math.max(150,params.dur+totalGap+50);loopTimer=setTimeout(playCurrentChord,delayMs)}}
+let lastSfFail=0;async function playCurrentChord(){const midiNotes=updateDisplay();ensureAudio();clearPlaying();if(loopTimer)clearTimeout(loopTimer);loopTimer=null;const useSF=dom.engineSelect.value==='sf';if(useSF&&(!sfInstrument||sfInstrument.name!==sfRequestedName)){try{await loadSfInstrument(sfRequestedName)}catch{const now=Date.now();if(now-lastSfFail<500)return;lastSfFail=now;dom.engineSelect.value='synth';dom.sfControls.classList.add('hidden');return playCurrentChord()}}const params={dur:parseInt(dom.dur.value,10),gap:parseInt(dom.gap.value,10),A:parseInt(dom.adsrA.value,10),R:parseInt(dom.adsrR.value,10),style:dom.style.value,tone:dom.tone.value,jitter:parseInt(dom.human.value||'0',10),a4:parseFloat(dom.a4.value)};const notes=[...midiNotes].sort((a,b)=>a-b);const amp=1/Math.sqrt(Math.max(1,notes.length));const t0=AC.currentTime+0.02;const isStrum=params.style.startsWith('strum');const localA=isStrum?Math.min(params.A,16):params.A;const order=(params.style==='arpDown'||params.style==='strumDown')?[...notes].reverse():notes;const baseGap=isStrum?Math.max(params.gap,18):params.gap;order.forEach((midi,i)=>{let delayMs=0;if(params.style!=='block')delayMs=humanize(i*baseGap,params.jitter);const when=t0+(delayMs/1000);if(useSF&&sfInstrument)scheduleSfNote(midi,when,params.dur,localA,params.R,amp);else{const freq=midiToFreq(midi,params.a4);scheduleSynthNote(freq,when,params.dur,localA,params.R,params.tone,amp)}});if(loop){const totalGap=(notes.length-1)*baseGap;const delayMs=Math.max(150,params.dur+totalGap+50);loopTimer=setTimeout(playCurrentChord,delayMs)}}
 
 /* ===================== UI ===================== */
 const dom={};
-const ids=['root','quality','inversion','voicing','octave','style','tone','human','dur','gap','adsrA','adsrR','a4','ambience','ambMix','volume','symbol','notes','btnPlay','btnStop','btnLoop','loopState','btnRec','downloadLink','themeSelect','durVal','gapVal','adsrAVal','adsrRVal','volVal','fillDur','fillGap','fillA','fillR','fillVol','fillAmbMix','audioStatus','engineSelect','sfControls','sfInstrument','engineNotice','dockPlay','dockStop','dockLoop','modalCampoHarmonico','btnCampoHarmonico','modalClose','tonicSelect','harmonicFieldTables','btnAddChord','sequenceList','bpm','bpmVal','fillBpm','btnPlaySeq','btnStopSeq','btnClearSeq'];
+const ids=['root','quality','inversion','voicing','octave','style','tone','human','dur','gap','adsrA','adsrR','a4','ambience','ambMix','volume','symbol','notes','btnPlay','btnStop','btnLoop','loopState','btnRec','downloadLink','themeSelect','durVal','gapVal','adsrAVal','adsrRVal','volVal','fillDur','fillGap','fillA','fillR','fillVol','fillAmbMix','audioStatus','engineSelect','sfControls','sfInstrument','engineNotice','dockPlay','dockStop','dockLoop','modalCampoHarmonico','btnCampoHarmonico','modalClose','tonicSelect','harmonicFieldTables','btnAddChord','sequenceList','bpm','bpmVal','fillBpm','btnPlaySeq','btnStopSeq','btnClearSeq','lyricsEditor','btnSaveLyrics'];
 ids.forEach(id=>dom[id]=document.getElementById(id));
 
 function updateFills(){const pct=(v,min,max)=>(v-min)/(max-min);dom.fillDur.style.transform=`scaleX(${pct(+dom.dur.value,200,4000)})`;dom.fillGap.style.transform=`scaleX(${pct(+dom.gap.value,5,180)})`;dom.fillA.style.transform=`scaleX(${pct(+dom.adsrA.value,2,200)})`;dom.fillR.style.transform=`scaleX(${pct(+dom.adsrR.value,60,1500)})`;dom.fillVol.style.transform=`scaleX(${pct(+dom.volume.value,0,1)})`;dom.fillAmbMix.style.transform=`scaleX(${pct(+dom.ambMix.value,0,1)})`;dom.fillBpm.style.transform=`scaleX(${pct(+dom.bpm.value,40,240)})`}
@@ -468,11 +503,12 @@ function syncLabels(){dom.durVal.textContent=dom.dur.value;dom.gapVal.textConten
 
 function getOpts(){const g=id=>document.getElementById(id).getAttribute('aria-pressed')==='true';return{add6:g('add6'),add7:g('add7'),addMaj7:g('addMaj7'),add9:g('add9'),add11:g('add11'),add13:g('add13'),add9only:g('add9only'),omit3:g('omit3'),omit5:g('omit5'),b5:g('b5'),sharp5:g('sharp5'),b9:g('b9'),sharp9:g('sharp9'),b13:g('b13'),doubleBass:g('doubleBass')}}
 function qualityConstraints(){const omit3Btn=document.getElementById('omit3');if(dom.quality.value==='sus2'||dom.quality.value==='sus4'){omit3Btn.setAttribute('aria-pressed','true');omit3Btn.disabled=true}else{omit3Btn.disabled=false}const opts=getOpts();const has7=opts.add7||opts.addMaj7;[...dom.inversion.options].forEach(o=>o.disabled=false);dom.inversion.options[3].disabled=!has7;if(!has7&&dom.inversion.value==='3')dom.inversion.value='0'}
+function getChordStateAndMidi(chordState){const state=chordState||{root:dom.root.value,quality:dom.quality.value,inversion:dom.inversion.value,voicing:dom.voicing.value,octave:dom.octave.value,options:getOpts()};const rootSemi=parseInt(state.root,10);const ints=buildChordIntervals(state.quality,{...state.options});const midi=intervalsToMidi(rootSemi,ints,parseInt(state.octave,10),parseInt(state.inversion,10),state.voicing,state.options.doubleBass);return{rootSemi:rootSemi,q:state.quality,opts:state.options,midi:midi}}
 function updateDisplay(){qualityConstraints();const{rootSemi,q,opts,midi}=getChordStateAndMidi();const usaName=NOTE_NAMES_SHARP[rootSemi],brName=convertToBrNote(usaName);let suffix='';if(q==='minor')suffix='m';if(q==='aug')suffix='+';if(q==='dim')suffix='°';if(q==='sus2')suffix='sus2';if(q==='sus4')suffix='sus4';if(q==='power')suffix='5';const ext=[];if(opts.add6)ext.push('6');if(opts.addMaj7)ext.push('maj7');if(opts.add7)ext.push('7');if(opts.add9)ext.push('9');if(opts.add11)ext.push('11');if(opts.add13)ext.push('13');if(opts.add9only)ext.push('add9');if(opts.b5)ext.push('b5');if(opts.sharp5)ext.push('#5');if(opts.b9)ext.push('b9');if(opts.sharp9)ext.push('#9');if(opts.b13)ext.push('b13');if(opts.omit3)ext.push('no3');if(opts.omit5)ext.push('no5');const usaExtStr=ext.length?`(${ext.join(',')})`:'';let usaChordStr=`${usaName}${suffix}${usaExtStr}`;const brExt=[...ext];const iM=brExt.indexOf('maj7');if(iM>-1)brExt[iM]='7M';const brExtStr=brExt.length?`(${brExt.join(',')})`:'';let brChordStr=`${brName}${suffix}${brExtStr}`;const bassPc=midi[0]%12;if(rootSemi!==bassPc){const useFlats=[1,3,6,8,10].includes(rootSemi);const usaBass=midiToName(midi[0],useFlats).slice(0,-1);const brBass=convertToBrNote(usaBass);usaChordStr+=`/${usaBass}`;brChordStr+=`/${brBass}`}dom.symbol.textContent=`${usaChordStr}  /  ${brChordStr}`;const useFlatsForNotes=[1,3,6,8,10].includes(rootSemi);const noteNames=midi.map(m=>midiToName(m,useFlatsForNotes));dom.notes.textContent='Notas: '+noteNames.join('  ');saveState();return midi}
 
 /* ===================== Persistência ===================== */
-const STORAGE_KEY='chordToolState_v12';function saveState(){const state={root:dom.root.value,quality:dom.quality.value,inversion:dom.inversion.value,voicing:dom.voicing.value,octave:dom.octave.value,style:dom.style.value,tone:dom.tone.value,human:dom.human.value,options:[...document.querySelectorAll('.checkline button.tag')].map(btn=>({id:btn.id,pressed:btn.getAttribute('aria-pressed')})),dur:dom.dur.value,gap:dom.gap.value,adsrA:dom.adsrA.value,adsrR:dom.adsrR.value,a4:dom.a4.value,ambience:dom.ambience.value,ambMix:dom.ambMix.value,volume:dom.volume.value,theme:document.documentElement.getAttribute('data-theme')||'neon',engine:dom.engineSelect.value,sfInst:dom.sfInstrument.value,bpm:dom.bpm.value,sequence:sequence};try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch(e){}}
-function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return;const s=JSON.parse(raw);if(s.root)dom.root.value=s.root;if(s.quality)dom.quality.value=s.quality;if(s.inversion)dom.inversion.value=s.inversion;if(s.voicing)dom.voicing.value=s.voicing;if(s.octave)dom.octave.value=s.octave;if(s.style)dom.style.value=s.style;if(s.tone)dom.tone.value=s.tone;if(s.human)dom.human.value=s.human;if(s.options&&Array.isArray(s.options)){s.options.forEach(o=>{const b=document.getElementById(o.id);if(b)b.setAttribute('aria-pressed',o.pressed)})}if(s.dur)dom.dur.value=s.dur;if(s.gap)dom.gap.value=s.gap;if(s.adsrA)dom.adsrA.value=s.adsrA;if(s.adsrR)dom.adsrR.value=s.adsrR;if(s.a4)dom.a4.value=s.a4;if(s.ambience)dom.ambience.value=s.ambience;if(s.ambMix)dom.ambMix.value=s.ambMix;if(s.volume){dom.volume.value=s.volume}if(s.bpm)dom.bpm.value=s.bpm;if(s.theme){document.documentElement.setAttribute('data-theme',s.theme);dom.themeSelect.value=s.theme}if(s.engine){dom.engineSelect.value=s.engine;dom.sfControls.classList.toggle('hidden',s.engine!=='sf');dom.tone.disabled=(s.engine==='sf')}if(s.sfInst){dom.sfInstrument.value=s.sfInst;sfRequestedName=s.sfInst}if(s.sequence){sequence=s.sequence;renderSequence()}syncLabels();updateFills()}catch(e){console.error("Failed to load state:",e)}}
+const STORAGE_KEY='chordToolState_v14';function saveState(){const state={root:dom.root.value,quality:dom.quality.value,inversion:dom.inversion.value,voicing:dom.voicing.value,octave:dom.octave.value,style:dom.style.value,tone:dom.tone.value,human:dom.human.value,options:[...document.querySelectorAll('.checkline button.tag')].map(btn=>({id:btn.id,pressed:btn.getAttribute('aria-pressed')})),dur:dom.dur.value,gap:dom.gap.value,adsrA:dom.adsrA.value,adsrR:dom.adsrR.value,a4:dom.a4.value,ambience:dom.ambience.value,ambMix:dom.ambMix.value,volume:dom.volume.value,theme:document.documentElement.getAttribute('data-theme')||'neon',engine:dom.engineSelect.value,sfInst:dom.sfInstrument.value,bpm:dom.bpm.value,sequence:sequence,lyrics:dom.lyricsEditor.value};try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch(e){}}
+function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return;const s=JSON.parse(raw);if(s.root)dom.root.value=s.root;if(s.quality)dom.quality.value=s.quality;if(s.inversion)dom.inversion.value=s.inversion;if(s.voicing)dom.voicing.value=s.voicing;if(s.octave)dom.octave.value=s.octave;if(s.style)dom.style.value=s.style;if(s.tone)dom.tone.value=s.tone;if(s.human)dom.human.value=s.human;if(s.options&&Array.isArray(s.options)){s.options.forEach(o=>{const b=document.getElementById(o.id);if(b)b.setAttribute('aria-pressed',o.pressed)})}if(s.dur)dom.dur.value=s.dur;if(s.gap)dom.gap.value=s.gap;if(s.adsrA)dom.adsrA.value=s.adsrA;if(s.adsrR)dom.adsrR.value=s.adsrR;if(s.a4)dom.a4.value=s.a4;if(s.ambience)dom.ambience.value=s.ambience;if(s.ambMix)dom.ambMix.value=s.ambMix;if(s.volume){dom.volume.value=s.volume}if(s.bpm)dom.bpm.value=s.bpm;if(s.theme){document.documentElement.setAttribute('data-theme',s.theme);dom.themeSelect.value=s.theme}if(s.engine){dom.engineSelect.value=s.engine;dom.sfControls.classList.toggle('hidden',s.engine!=='sf');dom.tone.disabled=(s.engine==='sf')}if(s.sfInst){dom.sfInstrument.value=s.sfInst;sfRequestedName=s.sfInst}if(s.sequence){sequence=s.sequence;renderSequence()}if(s.lyrics)dom.lyricsEditor.value=s.lyrics;syncLabels();updateFills()}catch(e){console.error("Failed to load state:",e)}}
 
 /* ===================== Eventos UI ===================== */
 [dom.root,dom.quality,dom.inversion,dom.voicing,dom.octave,dom.style,dom.tone,dom.human,dom.a4,dom.ambience].forEach(el=>el.addEventListener('change',()=>{ensureAudio();updateAmbienceParams();updateDisplay()}));
@@ -501,20 +537,20 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!dom.modalCampoHarmon
 
 /* ===================== SEQUENCIADOR LÓGICA ===================== */
 let sequence=[];let isPlayingSeq=false;let schedulerTimer=null;let nextNoteTime=0.0;let currentChordInSeq=0;
-function getChordStateAndMidi(chordState){const state=chordState||{root:dom.root.value,quality:dom.quality.value,inversion:dom.inversion.value,voicing:dom.voicing.value,octave:dom.octave.value,options:getOpts()};const rootSemi=parseInt(state.root,10);const ints=buildChordIntervals(state.quality,{...state.options});const midi=intervalsToMidi(rootSemi,ints,parseInt(state.octave,10),parseInt(state.inversion,10),state.voicing,state.options.doubleBass);return{rootSemi:rootSemi,q:state.quality,opts:state.options,midi:midi}}
-function addChordToSequence(){const currentState={root:dom.root.value,quality:dom.quality.value,inversion:dom.inversion.value,voicing:dom.voicing.value,octave:dom.octave.value,options:getOpts()};sequence.push(currentState);renderSequence()}
-function renderSequence(){dom.sequenceList.innerHTML='';sequence.forEach((chordData,index)=>{const{rootSemi,q,opts}=getChordStateAndMidi(chordData);const usaName=NOTE_NAMES_SHARP[rootSemi];let suffix='';if(q==='minor')suffix='m';if(q==='aug')suffix='+';if(q==='dim')suffix='°';if(q==='sus2')suffix='sus2';if(q==='sus4')suffix='sus4';if(q==='power')suffix='5';const chip=document.createElement('div');chip.className='chord-chip';chip.dataset.index=index;chip.textContent=`${usaName}${suffix}`;const removeBtn=document.createElement('button');removeBtn.className='remove-chord';removeBtn.innerHTML='&times;';removeBtn.onclick=e=>{e.stopPropagation();sequence.splice(index,1);renderSequence()};chip.appendChild(removeBtn);dom.sequenceList.appendChild(chip)});saveState()}
-function scheduler(){const scheduleAheadTime=0.1;while(nextNoteTime<AC.currentTime+scheduleAheadTime){if(!sequence.length)return;const chordData=sequence[currentChordInSeq];const{midi}=getChordStateAndMidi(chordData);const params={dur:parseInt(dom.dur.value,10),A:parseInt(dom.adsrA.value,10),R:parseInt(dom.adsrR.value,10),tone:dom.tone.value,a4:parseFloat(dom.a4.value)};const amp=1/Math.sqrt(Math.max(1,midi.length));midi.forEach(note=>{if(dom.engineSelect.value==='sf'&&sfInstrument){scheduleSfNote(note,nextNoteTime,params.dur,params.A,params.R,amp)}else{const freq=midiToFreq(note,params.a4);scheduleSynthNote(freq,nextNoteTime,params.dur,params.A,params.R,params.tone,amp)}});const chips=document.querySelectorAll('.chord-chip');chips.forEach(c=>c.classList.remove('is-playing'));const currentChip=document.querySelector(`.chord-chip[data-index="${currentChordInSeq}"]`);if(currentChip)currentChip.classList.add('is-playing');const secondsPerBeat=60.0/dom.bpm.value;const chordDuration=secondsPerBeat*4;nextNoteTime+=chordDuration;currentChordInSeq=(currentChordInSeq+1)%sequence.length}}
+function addChordToSequence(){const currentState={root:dom.root.value,quality:dom.quality.value,inversion:dom.inversion.value,voicing:dom.voicing.value,octave:dom.octave.value,options:getOpts()};sequence.push({chordState:currentState,beats:4});renderSequence()}
+function renderSequence(){dom.sequenceList.innerHTML='';sequence.forEach((item,index)=>{const{rootSemi,q}=getChordStateAndMidi(item.chordState);const usaName=NOTE_NAMES_SHARP[rootSemi];let suffix='';if(q==='minor')suffix='m';if(q==='aug')suffix='+';if(q==='dim')suffix='°';if(q==='sus2')suffix='sus2';if(q==='sus4')suffix='sus4';if(q==='power')suffix='5';const chip=document.createElement('div');chip.className='chord-chip';chip.dataset.index=index;const nameSpan=document.createElement('span');nameSpan.className='chord-name';nameSpan.textContent=`${usaName}${suffix}`;const beatsSelect=document.createElement('select');beatsSelect.className='beats-select';[1,2,3,4,5,6,7,8].forEach(b=>{const opt=document.createElement('option');opt.value=b;opt.textContent=`${b}/4`;beatsSelect.add(opt)});beatsSelect.value=item.beats;beatsSelect.onchange=()=>{sequence[index].beats=parseInt(beatsSelect.value,10);saveState()};const removeBtn=document.createElement('button');removeBtn.className='remove-chord';removeBtn.innerHTML='&times;';removeBtn.onclick=e=>{e.stopPropagation();sequence.splice(index,1);renderSequence()};chip.appendChild(nameSpan);chip.appendChild(beatsSelect);chip.appendChild(removeBtn);dom.sequenceList.appendChild(chip)});saveState()}
+function scheduler(){const scheduleAheadTime=0.1;while(nextNoteTime<AC.currentTime+scheduleAheadTime){if(!sequence.length){stopSequence();return}const item=sequence[currentChordInSeq];const{midi}=getChordStateAndMidi(item.chordState);const params={dur:parseInt(dom.dur.value,10),A:parseInt(dom.adsrA.value,10),R:parseInt(dom.adsrR.value,10),tone:dom.tone.value,a4:parseFloat(dom.a4.value)};const amp=1/Math.sqrt(Math.max(1,midi.length));midi.forEach(note=>{if(dom.engineSelect.value==='sf'&&sfInstrument){scheduleSfNote(note,nextNoteTime,params.dur,params.A,params.R,amp)}else{const freq=midiToFreq(note,params.a4);scheduleSynthNote(freq,nextNoteTime,params.dur,params.A,params.R,params.tone,amp)}});const chips=document.querySelectorAll('.chord-chip');chips.forEach(c=>c.classList.remove('is-playing'));const currentChip=document.querySelector(`.chord-chip[data-index="${currentChordInSeq}"]`);if(currentChip)currentChip.classList.add('is-playing');const secondsPerBeat=60.0/dom.bpm.value;const chordDuration=secondsPerBeat*item.beats;nextNoteTime+=chordDuration;currentChordInSeq=(currentChordInSeq+1)%sequence.length}}
 function playSequence(){if(isPlayingSeq||sequence.length===0)return;ensureAudio();isPlayingSeq=true;dom.btnPlaySeq.disabled=true;dom.btnStopSeq.disabled=false;currentChordInSeq=0;nextNoteTime=AC.currentTime+0.1;schedulerTimer=setInterval(scheduler,50)}
 function stopSequence(){if(!isPlayingSeq)return;isPlayingSeq=false;dom.btnPlaySeq.disabled=false;dom.btnStopSeq.disabled=true;clearInterval(schedulerTimer);schedulerTimer=null;clearPlaying();document.querySelectorAll('.chord-chip').forEach(c=>c.classList.remove('is-playing'))}
-function clearSequence(){sequence=[];renderSequence()}
+function clearSequence(){stopSequence();sequence=[];renderSequence()}
 dom.btnAddChord.addEventListener('click',addChordToSequence);dom.btnPlaySeq.addEventListener('click',playSequence);dom.btnStopSeq.addEventListener('click',stopSequence);dom.btnClearSeq.addEventListener('click',clearSequence);
+dom.lyricsEditor.addEventListener('input',saveState);
+dom.btnSaveLyrics.addEventListener('click',()=>{saveState();const btn=dom.btnSaveLyrics;const originalText=btn.textContent;btn.textContent='Salvo!';btn.disabled=true;setTimeout(()=>{btn.textContent=originalText;btn.disabled=false},1500)});
 
 /* ===================== Inicialização ===================== */
 loadState();
 updateDisplay();
 syncLabels();
-
 });
 </script>
 </body>

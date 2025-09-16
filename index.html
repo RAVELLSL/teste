@@ -302,8 +302,6 @@
             opacity: 0.5;
             cursor: grabbing;
         }
-
-        /* ===== INÍCIO DAS MELHORIAS DE ESTÉTICA ===== */
         .chord-chip .chord-selector {
             -webkit-appearance: none;
             appearance: none;
@@ -316,7 +314,7 @@
             border: 1px solid var(--muted);
             border-radius: 4px;
             transform: translateY(-0.075em);
-            display: grid;
+            display: none; /* Hidden by default */
             place-content: center;
             cursor: pointer;
             transition: all 0.15s ease-out;
@@ -328,7 +326,7 @@
             transform: scale(0);
             transition: 120ms transform ease-in-out;
             box-shadow: inset 1em 1em var(--accent);
-            background-color: CanvasText; /* For accessibility */
+            background-color: CanvasText;
             clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
         }
         .chord-chip .chord-selector:checked::before {
@@ -342,7 +340,6 @@
             outline: 2px solid var(--focus);
             outline-offset: 2px;
         }
-
         .selection-mode-active .chord-chip .chord-selector {
             display: grid;
         }
@@ -362,7 +359,6 @@
             font-weight: 600;
             cursor: pointer;
             transition: all .2s ease;
-            /* Flexbox para centralização perfeita */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -375,10 +371,8 @@
             box-shadow: 0 0 10px var(--accent-2);
         }
         .selection-mode-active .chord-inserter {
-            display: flex; /* Alterado para flex para funcionar a centralização */
+            display: flex;
         }
-        /* ===== FIM DAS MELHORIAS DE ESTÉTICA ===== */
-
         .chord-chip.is-playing { background: var(--accent-2); color: #000; box-shadow: 0 0 10px var(--accent-2); }
         .chord-chip .chord-name { flex-grow: 1; }
         .chord-chip .beats-select {
@@ -389,7 +383,6 @@
             background: var(--danger); color: white; border: none; border-radius: 50%; width: 20px;
             height: 20px; font-size: 12px; line-height: 20px; text-align: center; cursor: pointer; padding: 0; font-weight: bold;
         }
-        
         .timeline-container {
             display: flex;
             align-items: center;
@@ -418,7 +411,6 @@
             pointer-events: none;
             transition: width 0.1s linear;
         }
-
         .lyrics-card .body { display: flex; flex-direction: column; height: 100%; }
         #lyricsEditor {
             width: 100%; flex-grow: 1; min-height: 250px; margin-bottom: 12px;
@@ -811,6 +803,7 @@
                                 <div class="sequencer-actions">
                                     <button id="btnPlaySeq" class="play">▶ Tocar</button>
                                     <button id="btnStopSeq" class="stop">■ Parar</button>
+                                    <button id="btnUndo" class="pill" title="Desfazer (Ctrl+Z)">Desfazer</button>
                                     <button id="btnClearSeq" class="pill">Limpar</button>
                                     <div class="themeSel" style="padding: 0 4px;">
                                         <span style="padding-left: 6px;">Transpor</span>
@@ -859,6 +852,7 @@
             <span><span class="kbd">Espaço</span> Tocar/Parar</span>
             <span><span class="kbd">Alt</span> + <span class="kbd">↑</span><span class="kbd">↓</span> Tônica</span>
             <span><span class="kbd">Alt</span> + <span class="kbd">←</span><span class="kbd">→</span> Qualidade</span>
+            <span><span class="kbd">Ctrl</span> + <span class="kbd">Z</span> Desfazer</span>
         </div>
     </footer>
 
@@ -977,7 +971,7 @@
             }
 
             /* ===================== UI ===================== */
-            const dom = {}; const ids = ['root', 'quality', 'inversion', 'voicing', 'octave', 'style', 'tone', 'human', 'dur', 'gap', 'adsrA', 'adsrR', 'volume', 'symbol', 'notes', 'btnPlay', 'btnStop', 'btnLoop', 'loopState', 'btnRec', 'downloadLink', 'themeSelect', 'durVal', 'gapVal', 'adsrAVal', 'adsrRVal', 'volVal', 'fillDur', 'fillGap', 'fillA', 'fillR', 'fillVol', 'fillAmbMix', 'audioStatus', 'engineSelect', 'sfControls', 'sfInstrument', 'engineNotice', 'dockPlay', 'dockStop', 'dockLoop', 'modalCampoHarmonico', 'btnCampoHarmonico', 'modalClose', 'tonicSelect', 'harmonicFieldTables', 'btnAddChord', 'sequenceList', 'bpm', 'bpmVal', 'fillBpm', 'btnPlaySeq', 'btnStopSeq', 'btnClearSeq', 'btnCopySeq', 'btnPasteSeq', 'lyricsEditor', 'btnSaveLyrics', 'slashBass', 'ambience', 'ambMix', 'btnPlayShortcut', 'btnToggleSelect', 'btnExportSeq', 'btnImportSeq', 'fileImporter', 'songTitleDisplay', 'transposeKeySelect', 'timeline', 'timelineProgress', 'currentTimeDisplay', 'totalTimeDisplay']; ids.forEach(id => dom[id] = document.getElementById(id));
+            const dom = {}; const ids = ['root', 'quality', 'inversion', 'voicing', 'octave', 'style', 'tone', 'human', 'dur', 'gap', 'adsrA', 'adsrR', 'volume', 'symbol', 'notes', 'btnPlay', 'btnStop', 'btnLoop', 'loopState', 'btnRec', 'downloadLink', 'themeSelect', 'durVal', 'gapVal', 'adsrAVal', 'adsrRVal', 'volVal', 'fillDur', 'fillGap', 'fillA', 'fillR', 'fillVol', 'fillAmbMix', 'audioStatus', 'engineSelect', 'sfControls', 'sfInstrument', 'engineNotice', 'dockPlay', 'dockStop', 'dockLoop', 'modalCampoHarmonico', 'btnCampoHarmonico', 'modalClose', 'tonicSelect', 'harmonicFieldTables', 'btnAddChord', 'sequenceList', 'bpm', 'bpmVal', 'fillBpm', 'btnPlaySeq', 'btnStopSeq', 'btnClearSeq', 'btnCopySeq', 'btnPasteSeq', 'lyricsEditor', 'btnSaveLyrics', 'slashBass', 'ambience', 'ambMix', 'btnPlayShortcut', 'btnToggleSelect', 'btnExportSeq', 'btnImportSeq', 'fileImporter', 'songTitleDisplay', 'transposeKeySelect', 'timeline', 'timelineProgress', 'currentTimeDisplay', 'totalTimeDisplay', 'btnUndo']; ids.forEach(id => dom[id] = document.getElementById(id));
             const choiceSelectIds = ['style', 'voicing', 'octave', 'tone', 'ambience'];
             function createChoiceControls(selectId) {
                 const selectEl = document.getElementById(selectId);
@@ -1118,6 +1112,7 @@
                 const tag = document.activeElement && document.activeElement.tagName; const isForm = tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA'; const modalOpen = !dom.modalCampoHarmonico.classList.contains('hidden'); if (isForm || modalOpen) return; if (e.code === 'Space') { e.preventDefault(); if (playingNodes.length > 0) { clearPlaying() } else { playCurrentChord() } }
                 if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) { e.preventDefault(); let v = parseInt(dom.root.value, 10); dom.root.value = (v + (e.key === 'ArrowUp' ? 1 : -1) + 12) % 12; updateDisplay() }
                 if (e.altKey && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { e.preventDefault(); const keys = Object.keys(QUALITIES); const idx = keys.indexOf(dom.quality.value); let nxt = idx + (e.key === 'ArrowRight' ? 1 : -1); if (nxt < 0) nxt = keys.length - 1; if (nxt >= keys.length) nxt = 0; dom.quality.value = keys[nxt]; updateDisplay() }
+                if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undoLastAction(); }
             });
             dom.themeSelect.addEventListener('change', () => { document.documentElement.setAttribute('data-theme', dom.themeSelect.value); saveState() });
             async function switchEngine() { const val = dom.engineSelect.value; dom.sfControls.classList.toggle('hidden', val !== 'sf'); dom.tone.disabled = (val === 'sf'); saveState(); if (val === 'sf') { if (!sfInstrument || sfInstrument.name !== sfRequestedName) { sfRequestedName = dom.sfInstrument.value || 'acoustic_grand_piano' } try { await loadSfInstrument(sfRequestedName); ensureAudio(); sfInstrument.play('A4', AC.currentTime + 0.02, { gain: 0.1, duration: 0.3 }) } catch (_) { } } }
@@ -1159,6 +1154,33 @@
             let sequenceClipboard = [];
             let selectedChordIndices = new Set();
             let isSelectionModeActive = false;
+
+            // ===== INÍCIO DA LÓGICA DE DESFAZER (UNDO) =====
+            let sequenceHistory = [];
+            let historyIndex = -1;
+
+            function updateUndoButton() {
+                dom.btnUndo.disabled = historyIndex <= 0;
+            }
+
+            function saveStateToHistory() {
+                if (historyIndex < sequenceHistory.length - 1) {
+                    sequenceHistory = sequenceHistory.slice(0, historyIndex + 1);
+                }
+                sequenceHistory.push(JSON.parse(JSON.stringify(sequence)));
+                historyIndex = sequenceHistory.length - 1;
+                updateUndoButton();
+            }
+
+            function undoLastAction() {
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    sequence = JSON.parse(JSON.stringify(sequenceHistory[historyIndex]));
+                    renderSequence();
+                    updateUndoButton();
+                }
+            }
+            // ===== FIM DA LÓGICA DE DESFAZER (UNDO) =====
 
             let totalSongTime = 0;
             let chordStartTimes = [];
@@ -1205,6 +1227,7 @@
             function addChordToSequence() { 
                 const currentState = { root: dom.root.value, quality: dom.quality.value, inversion: dom.inversion.value, voicing: dom.voicing.value, octave: dom.octave.value, options: getOpts(), slashBass: dom.slashBass.value };
                 sequence.push({ chordState: currentState, beats: 4, division: 4 });
+                saveStateToHistory();
                 renderSequence();
             }
             
@@ -1270,12 +1293,13 @@
                         const [beats, division] = e.target.value.split('/');
                         sequence[index].beats = parseInt(beats, 10);
                         sequence[index].division = parseInt(division, 10);
+                        saveStateToHistory();
                         saveState(); 
                         updateTimelineData();
                     };
                     
                     const removeBtn = document.createElement('button'); removeBtn.className = 'remove-chord'; removeBtn.innerHTML = '&times;';
-                    removeBtn.onclick = e => { e.stopPropagation(); sequence.splice(index, 1); selectedChordIndices.clear(); renderSequence(); };
+                    removeBtn.onclick = e => { e.stopPropagation(); sequence.splice(index, 1); selectedChordIndices.clear(); saveStateToHistory(); renderSequence(); };
                     
                     chip.appendChild(nameSpan); chip.appendChild(beatsSelect); chip.appendChild(removeBtn);
                     dom.sequenceList.appendChild(chip);
@@ -1312,6 +1336,7 @@
                     const newChord = { chordState: newChordState, beats: 4, division: 4 };
                     sequence.splice(insertIndex, 0, newChord);
                 }
+                saveStateToHistory();
                 renderSequence();
             }
             
@@ -1347,7 +1372,7 @@
             });
             
             dom.sequenceList.addEventListener('dragover', e => { e.preventDefault(); if (isSelectionModeActive) return; const draggingChip = document.querySelector('.dragging'); if (!draggingChip) return; const afterElement = getDragAfterElement(dom.sequenceList, e.clientX); if (afterElement == null) { dom.sequenceList.appendChild(draggingChip); } else { dom.sequenceList.insertBefore(draggingChip, afterElement); } });
-            dom.sequenceList.addEventListener('drop', e => { e.preventDefault(); if (isSelectionModeActive) return; const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10); const toElement = document.querySelector('.dragging'); if (!toElement) return; const children = Array.from(dom.sequenceList.children).filter(c => c.classList.contains('chord-chip')); const toIndex = children.indexOf(toElement); if (fromIndex !== toIndex && !isNaN(fromIndex) && toIndex > -1) { const [removedItem] = sequence.splice(fromIndex, 1); if (removedItem) { sequence.splice(toIndex, 0, removedItem); } } selectedChordIndices.clear(); renderSequence(); });
+            dom.sequenceList.addEventListener('drop', e => { e.preventDefault(); if (isSelectionModeActive) return; const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10); const toElement = document.querySelector('.dragging'); if (!toElement) return; const children = Array.from(dom.sequenceList.children).filter(c => c.classList.contains('chord-chip')); const toIndex = children.indexOf(toElement); if (fromIndex !== toIndex && !isNaN(fromIndex) && toIndex > -1) { const [removedItem] = sequence.splice(fromIndex, 1); if (removedItem) { sequence.splice(toIndex, 0, removedItem); } } selectedChordIndices.clear(); saveStateToHistory(); renderSequence(); });
             function getDragAfterElement(container, x) { const draggableElements = [...container.querySelectorAll('.chord-chip:not(.dragging)')]; return draggableElements.reduce((closest, child) => { const box = child.getBoundingClientRect(); const offset = x - box.left - box.width / 2; if (offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } else { return closest; } }, { offset: Number.NEGATIVE_INFINITY }).element; }
 
             function scheduler() {
@@ -1366,13 +1391,11 @@
                         else { const freq = midiToFreq(note, 440); scheduleSynthNote(freq, nextNoteTime, params.dur, params.A, params.R, params.tone, amp) }
                     });
                     
-                    // ===== INÍCIO DA CORREÇÃO: LÓGICA DE DESTAQUE RESTAURADA =====
                     document.querySelectorAll('.chord-chip').forEach(c => c.classList.remove('is-playing'));
                     const currentChip = document.querySelector(`.chord-chip[data-index="${currentChordInSeq}"]`);
                     if (currentChip) {
                         currentChip.classList.add('is-playing');
                     }
-                    // ===== FIM DA CORREÇÃO =====
                     
                     const secondsPerBeat = 60.0 / dom.bpm.value;
                     const secondsPerWholeNote = secondsPerBeat * 4;
@@ -1447,13 +1470,25 @@
                 seekToTime(seekTime);
             });
 
-            function clearSequence() { stopSequence(); sequence = []; songTitle = 'Nova Canção'; updateSongTitleDisplay(); selectedChordIndices.clear(); if(isSelectionModeActive) { dom.btnToggleSelect.click(); } else { renderSequence(); } }
+            function clearSequence() {
+                if (sequence.length > 0) {
+                    stopSequence(); 
+                    sequence = []; 
+                    songTitle = 'Nova Canção'; 
+                    updateSongTitleDisplay(); 
+                    selectedChordIndices.clear(); 
+                    if(isSelectionModeActive) { dom.btnToggleSelect.click(); }
+                    else { renderSequence(); }
+                    saveStateToHistory();
+                }
+            }
             function saveAndExportLyrics() { saveState(); const btn = dom.btnSaveLyrics; const originalText = btn.textContent; btn.textContent = 'Gerando PDF...'; btn.disabled = true; setTimeout(() => { try { const { jsPDF } = window.jspdf; const doc = new jsPDF(); const lyricsText = dom.lyricsEditor.value; const pageHeight = doc.internal.pageSize.height; const margin = 15; const maxWidth = doc.internal.pageSize.width - (margin * 2); const lineHeight = 7; let y = margin; doc.setFontSize(12); const lines = doc.splitTextToSize(lyricsText, maxWidth); lines.forEach(line => { if (y + lineHeight > pageHeight - margin) { doc.addPage(); y = margin } doc.text(line, margin, y); y += lineHeight }); doc.save('letra-da-musica.pdf') } catch (error) { console.error("Erro ao gerar PDF:", error); alert("Ocorreu um erro ao gerar o PDF.") } finally { btn.textContent = 'Exportado!'; setTimeout(() => { btn.textContent = originalText; btn.disabled = false }, 2000) } }, 100) }
             
             dom.btnAddChord.addEventListener('click', addChordToSequence);
             dom.btnPlaySeq.addEventListener('click', () => playSequence(0));
             dom.btnStopSeq.addEventListener('click', stopSequence);
             dom.btnClearSeq.addEventListener('click', clearSequence);
+            dom.btnUndo.addEventListener('click', undoLastAction);
             dom.lyricsEditor.addEventListener('input', saveState);
             dom.btnSaveLyrics.addEventListener('click', saveAndExportLyrics);
             
@@ -1478,6 +1513,7 @@
             dom.btnPasteSeq.addEventListener('click', () => {
                 if (sequenceClipboard.length > 0) {
                     sequence.push(...JSON.parse(JSON.stringify(sequenceClipboard)));
+                    saveStateToHistory();
                     renderSequence();
                 }
             });
@@ -1544,6 +1580,7 @@
                         updateSongTitleDisplay();
                         selectedChordIndices.clear();
                         if(isSelectionModeActive) { dom.btnToggleSelect.click(); }
+                        saveStateToHistory();
                         renderSequence();
 
                     } catch (err) {
@@ -1579,6 +1616,7 @@
                         return newChordItem;
                     });
                     sequence = transposedSequence;
+                    saveStateToHistory();
                     renderSequence();
                 }
                 dom.transposeKeySelect.value = 'none';
@@ -1614,6 +1652,9 @@
             updateDisplay();
             setupDesktopNav();
             dom.btnPasteSeq.disabled = true;
+            
+            saveStateToHistory(); // Salva o estado inicial (vazio ou carregado)
+            updateUndoButton(); // Define o estado inicial do botão
         });
     </script>
 </body>
